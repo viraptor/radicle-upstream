@@ -17,7 +17,7 @@ use futures::{
 use tokio::{
     sync::{broadcast, mpsc, Barrier},
     task::{JoinError, JoinHandle},
-    time::{interval, Interval},
+    time::interval,
 };
 
 use librad::{
@@ -144,7 +144,7 @@ impl Peer {
         let subroutines = {
             let barrier = barrier.clone();
             SpawnAbortable::new(async move {
-                let protocol_events = state.api.protocol().subscribe().await.boxed();
+                let protocol_events = state.api.protocol().subscribe().await;
                 barrier.wait().await;
                 Subroutines::new(
                     state,
@@ -289,32 +289,22 @@ impl<T> Future for SpawnAbortable<T> {
 /// Management of "subroutine" tasks.
 #[allow(clippy::missing_docs_in_private_items)]
 struct Subroutines {
+    /// In-flight subroutine tasks.
     pending_tasks: FuturesUnordered<SpawnAbortable<()>>,
+    /// Events emitted by subroutine tasks.
+    task_events: futures::stream::SelectAll<BoxStream<'static, Event>>,
 
     state: State,
     store: kv::Store,
     waiting_room: Shared<WaitingRoom<Instant, Duration>>,
     run_state: RunState,
 
-    protocol_events: BoxStream<'static, ProtocolEvent<Gossip>>,
-
-    announce_timer: Interval,
-    ping_timer: Interval,
-
     subscriber: broadcast::Sender<Event>,
-
-    request_queries: waiting_room::stream::Queries,
-    request_clones: waiting_room::stream::Clones,
 
     announce_sender: mpsc::Sender<AnnounceEvent>,
     peer_sync_sender: mpsc::Sender<SyncEvent>,
     timeout_sender: mpsc::Sender<TimeoutEvent>,
     request_sender: mpsc::Sender<RequestEvent>,
-
-    announcements: mpsc::Receiver<AnnounceEvent>,
-    peer_syncs: mpsc::Receiver<SyncEvent>,
-    timeouts: mpsc::Receiver<TimeoutEvent>,
-    requests: mpsc::Receiver<RequestEvent>,
 }
 
 impl Subroutines {
@@ -324,7 +314,7 @@ impl Subroutines {
         store: kv::Store,
         waiting_room: Shared<WaitingRoom<Instant, Duration>>,
         run_config: RunConfig,
-        protocol_events: BoxStream<'static, ProtocolEvent<Gossip>>,
+        protocol_events: impl futures::Stream<Item = ProtocolEvent<Gossip>> + Send + 'static,
         subscriber: broadcast::Sender<Event>,
     ) -> Self {
         let announce_timer = interval(run_config.announce.interval);
@@ -335,38 +325,53 @@ impl Subroutines {
         let (timeout_sender, timeouts) = mpsc::channel::<TimeoutEvent>(RECEIVER_CAPACITY);
         let (request_sender, requests) = mpsc::channel::<RequestEvent>(RECEIVER_CAPACITY);
 
-        let run_state = RunState::from(run_config);
-
         let request_queries = waiting_room::stream::Queries::new(waiting_room.clone().value);
         let request_clones = waiting_room::stream::Clones::new(waiting_room.clone().value);
 
+        let task_events = {
+            let mut coalesced = futures::stream::SelectAll::new();
+            coalesced.push(protocol_events.map(Event::Protocol).boxed());
+            coalesced.push(
+                announce_timer
+                    .map(|_| Event::Announce(AnnounceEvent::Tick))
+                    .boxed(),
+            );
+            coalesced.push(ping_timer.map(|_| Event::Ping).boxed());
+            coalesced.push(announcements.map(Event::Announce).boxed());
+            coalesced.push(peer_syncs.map(Event::PeerSync).boxed());
+            coalesced.push(timeouts.map(Event::Timeout).boxed());
+            coalesced.push(requests.map(Event::Request).boxed());
+            coalesced.push(
+                request_queries
+                    .map(|urn| Event::Request(RequestEvent::Query(urn)))
+                    .boxed(),
+            );
+            coalesced.push(
+                request_clones
+                    .map(|url| Event::Request(RequestEvent::Clone(url)))
+                    .boxed(),
+            );
+
+            coalesced
+        };
+
+        let run_state = RunState::from(run_config);
+
         Self {
             pending_tasks: FuturesUnordered::new(),
+            task_events,
 
             state,
             store,
             waiting_room,
             run_state,
 
-            protocol_events: protocol_events.boxed(),
-
-            announce_timer,
-            ping_timer,
-
             subscriber,
-
-            request_queries,
-            request_clones,
 
             announce_sender,
             peer_sync_sender,
             timeout_sender,
             request_sender,
-
-            announcements,
-            peer_syncs,
-            timeouts,
-            requests,
         }
     }
 }
@@ -388,7 +393,7 @@ impl Future for Subroutines {
             match self.pending_tasks.poll_next_unpin(cx) {
                 Poll::Ready(Some(Err(e))) => {
                     log::warn!("error in spawned subroutine task: {:?}", e);
-                    return Poll::Ready(Err(e))
+                    return Poll::Ready(Err(e));
                 },
                 Poll::Ready(Some(Ok(()))) => continue,
                 // FuturesUnordered thinks it's done, but we'll enqueue new
@@ -400,88 +405,53 @@ impl Future for Subroutines {
         }
 
         // Collect any task results, and enqueue new tasks if applicable
-        let mut events = Vec::with_capacity(9);
-        {
-            if let Poll::Ready(Some(protocol_event)) = self.protocol_events.poll_next_unpin(cx) {
-                events.push(Event::Protocol(protocol_event));
-            }
+        loop {
+            match self.task_events.poll_next_unpin(cx) {
+                Poll::Ready(Some(event)) => {
+                    log::debug!("handling subroutine event: {:?}", event);
 
-            if let Poll::Ready(Some(_)) = self.announce_timer.poll_next_unpin(cx) {
-                events.push(Event::Announce(AnnounceEvent::Tick));
-            }
+                    // Ignore if there are no subscribers
+                    self.subscriber.send(event.clone()).ok();
 
-            if let Poll::Ready(Some(_)) = self.ping_timer.poll_next_unpin(cx) {
-                events.push(Event::Ping);
-            }
+                    for cmd in self.run_state.transition(&event) {
+                        let task = match cmd {
+                            Command::Announce => SpawnAbortable::new(announce(
+                                self.state.clone(),
+                                self.store.clone(),
+                                self.announce_sender.clone(),
+                            )),
+                            Command::SyncPeer(peer_id) => SpawnAbortable::new(sync(
+                                self.state.clone(),
+                                peer_id.clone(),
+                                self.peer_sync_sender.clone(),
+                            )),
+                            Command::StartSyncTimeout(sync_period) => SpawnAbortable::new(
+                                start_sync_timeout(sync_period, self.timeout_sender.clone()),
+                            ),
+                            Command::Request(RequestCommand::Query(urn)) => SpawnAbortable::new(
+                                query(urn, self.state.clone(), self.waiting_room.clone()),
+                            ),
+                            Command::Request(RequestCommand::Found(url)) => {
+                                SpawnAbortable::new(found(url, self.waiting_room.clone()))
+                            },
+                            Command::Request(RequestCommand::Clone(url)) => {
+                                SpawnAbortable::new(clone(
+                                    url,
+                                    self.state.clone(),
+                                    self.waiting_room.clone(),
+                                    self.request_sender.clone(),
+                                ))
+                            },
+                        };
 
-            if let Poll::Ready(Some(announce_event)) = self.announcements.poll_recv(cx) {
-                events.push(Event::Announce(announce_event));
-            }
+                        self.pending_tasks.push(task);
+                    }
+                },
 
-            if let Poll::Ready(Some(sync_event)) = self.peer_syncs.poll_recv(cx) {
-                events.push(Event::PeerSync(sync_event));
-            }
-
-            if let Poll::Ready(Some(timeout_event)) = self.timeouts.poll_recv(cx) {
-                events.push(Event::Timeout(timeout_event));
-            }
-
-            if let Poll::Ready(Some(urn)) = self.request_queries.poll_next_unpin(cx) {
-                events.push(Event::Request(RequestEvent::Query(urn)));
-            }
-
-            if let Poll::Ready(Some(url)) = self.request_clones.poll_next_unpin(cx) {
-                events.push(Event::Request(RequestEvent::Clone(url)));
-            }
-
-            if let Poll::Ready(Some(request_event)) = self.requests.poll_next_unpin(cx) {
-                events.push(Event::Request(request_event));
-            }
-        }
-
-        for event in events {
-            log::debug!("handling subroutine event: {:?}", event);
-
-            // Ignore if there are no subscribers
-            self.subscriber.send(event.clone()).ok();
-
-            for cmd in self.run_state.transition(&event) {
-                let task = match cmd {
-                    Command::Announce => SpawnAbortable::new(announce(
-                        self.state.clone(),
-                        self.store.clone(),
-                        self.announce_sender.clone(),
-                    )),
-                    Command::SyncPeer(peer_id) => SpawnAbortable::new(sync(
-                        self.state.clone(),
-                        peer_id.clone(),
-                        self.peer_sync_sender.clone(),
-                    )),
-                    Command::StartSyncTimeout(sync_period) => SpawnAbortable::new(
-                        start_sync_timeout(sync_period, self.timeout_sender.clone()),
-                    ),
-                    Command::Request(RequestCommand::Query(urn)) => SpawnAbortable::new(query(
-                        urn,
-                        self.state.clone(),
-                        self.waiting_room.clone(),
-                    )),
-                    Command::Request(RequestCommand::Found(url)) => {
-                        SpawnAbortable::new(found(url, self.waiting_room.clone()))
-                    },
-                    Command::Request(RequestCommand::Clone(url)) => SpawnAbortable::new(clone(
-                        url,
-                        self.state.clone(),
-                        self.waiting_room.clone(),
-                        self.request_sender.clone(),
-                    )),
-                };
-
-                self.pending_tasks.push(task);
+                Poll::Ready(None) => return Poll::Ready(Ok(())),
+                Poll::Pending => return Poll::Pending,
             }
         }
-
-        // We're never done
-        Poll::Pending
     }
 }
 
