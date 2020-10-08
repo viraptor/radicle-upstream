@@ -401,39 +401,39 @@ impl Future for Subroutines {
         // Collect any task results, and enqueue new tasks if applicable
         let mut events = Vec::with_capacity(9);
         {
-            if let Poll::Ready(Some(protocol_event)) = self.protocol_events.poll_next_unpin(cx) {
+            while let Poll::Ready(Some(protocol_event)) = self.protocol_events.poll_next_unpin(cx) {
                 events.push(Event::Protocol(protocol_event));
             }
 
-            if let Poll::Ready(Some(_)) = self.announce_timer.poll_next_unpin(cx) {
+            while let Poll::Ready(Some(_)) = self.announce_timer.poll_next_unpin(cx) {
                 events.push(Event::Announce(AnnounceEvent::Tick));
             }
 
-            if let Poll::Ready(Some(_)) = self.ping_timer.poll_next_unpin(cx) {
+            while let Poll::Ready(Some(_)) = self.ping_timer.poll_next_unpin(cx) {
                 events.push(Event::Ping);
             }
 
-            if let Poll::Ready(Some(announce_event)) = self.announcements.poll_recv(cx) {
+            while let Poll::Ready(Some(announce_event)) = self.announcements.poll_recv(cx) {
                 events.push(Event::Announce(announce_event));
             }
 
-            if let Poll::Ready(Some(sync_event)) = self.peer_syncs.poll_recv(cx) {
+            while let Poll::Ready(Some(sync_event)) = self.peer_syncs.poll_recv(cx) {
                 events.push(Event::PeerSync(sync_event));
             }
 
-            if let Poll::Ready(Some(timeout_event)) = self.timeouts.poll_recv(cx) {
+            while let Poll::Ready(Some(timeout_event)) = self.timeouts.poll_recv(cx) {
                 events.push(Event::Timeout(timeout_event));
             }
 
-            if let Poll::Ready(Some(urn)) = self.request_queries.poll_next_unpin(cx) {
+            while let Poll::Ready(Some(urn)) = self.request_queries.poll_next_unpin(cx) {
                 events.push(Event::Request(RequestEvent::Query(urn)));
             }
 
-            if let Poll::Ready(Some(url)) = self.request_clones.poll_next_unpin(cx) {
+            while let Poll::Ready(Some(url)) = self.request_clones.poll_next_unpin(cx) {
                 events.push(Event::Request(RequestEvent::Clone(url)));
             }
 
-            if let Poll::Ready(Some(request_event)) = self.requests.poll_next_unpin(cx) {
+            while let Poll::Ready(Some(request_event)) = self.requests.poll_next_unpin(cx) {
                 events.push(Event::Request(request_event));
             }
         }
