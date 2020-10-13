@@ -1,11 +1,7 @@
 use nonempty::NonEmpty;
 use pretty_assertions::assert_eq;
 
-use coco::{
-    request::waiting_room::{self, WaitingRoom},
-    shared::Shared,
-    RunConfig,
-};
+use coco::RunConfig;
 
 mod common;
 use common::{build_peer, init_logging, shia_le_pathbuf};
@@ -13,16 +9,11 @@ use common::{build_peer, init_logging, shia_le_pathbuf};
 #[tokio::test]
 async fn can_browse_peers_branch() -> Result<(), Box<dyn std::error::Error + 'static>> {
     init_logging();
-    let waiting_room = WaitingRoom::new(waiting_room::Config::default());
 
     let alice_tmp_dir = tempfile::tempdir()?;
     let alice_repo_path = alice_tmp_dir.path().join("radicle");
-    let (alice_peer, alice_state, alice_signer) = build_peer(
-        &alice_tmp_dir,
-        Shared::from(waiting_room.clone()),
-        RunConfig::default(),
-    )
-    .await?;
+    let (alice_peer, alice_state, alice_signer) =
+        build_peer(&alice_tmp_dir, RunConfig::default()).await?;
     let alice = {
         let alice_signer = alice_signer.clone();
         alice_state
@@ -31,12 +22,7 @@ async fn can_browse_peers_branch() -> Result<(), Box<dyn std::error::Error + 'st
     };
 
     let bob_tmp_dir = tempfile::tempdir()?;
-    let (bob_peer, bob_state, bob_signer) = build_peer(
-        &bob_tmp_dir,
-        Shared::from(waiting_room.clone()),
-        RunConfig::default(),
-    )
-    .await?;
+    let (bob_peer, bob_state, bob_signer) = build_peer(&bob_tmp_dir, RunConfig::default()).await?;
     let bob = bob_state.init_owner(&bob_signer, "bob").await?;
 
     tokio::task::spawn(alice_peer.into_running());

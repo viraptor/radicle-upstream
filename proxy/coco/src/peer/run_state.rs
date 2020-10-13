@@ -98,6 +98,7 @@ pub enum Event {
     RequestCloned(RadUrl),
     /// Requested urn was queried on the network.
     RequestQueried(RadUrn),
+    RequestRequested(RadUrn),
     /// Waiting room interval ticked.
     RequestTick,
     /// The request for [`RadUrn`] timed out.
@@ -114,6 +115,9 @@ impl MaybeFrom<&Input> for Event {
             Input::Protocol(event) => Some(Self::Protocol(event.clone())),
             Input::Request(RequestInput::Cloned(url)) => Some(Self::RequestCloned(url.clone())),
             Input::Request(RequestInput::Queried(urn)) => Some(Self::RequestQueried(urn.clone())),
+            Input::Request(RequestInput::Requested(urn, _, _)) => {
+                Some(Self::RequestRequested(urn.clone()))
+            },
             Input::Request(RequestInput::Tick) => Some(Self::RequestTick),
             Input::Request(RequestInput::TimedOut(urn)) => Some(Self::RequestTimedOut(urn.clone())),
             _ => None,
