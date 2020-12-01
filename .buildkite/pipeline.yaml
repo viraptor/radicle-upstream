@@ -13,14 +13,7 @@
     - "cypress/screenshots/**/*.png"
 
 steps:
-  - branches: master
-    concurrency: 1
-    concurrency_group: master
-    <<: *test-linux
-  - branches: "!master"
-    <<: *test-linux
-  - branches: "master"
-    <<: *test-linux
+  - <<: *test-linux
     label: "Test and package app on Linux (preview)"
     agents:
       queue: agent-preview
