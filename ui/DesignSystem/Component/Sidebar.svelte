@@ -123,6 +123,15 @@
       </div>
     </Tooltip>
     <ConnectionStatusIndicator />
+    <Tooltip value="Governance">
+      <div
+        class="item indicator"
+        data-cy="governance"
+        class:active={path.active(path.governance(), $location)}
+        on:click|stopPropagation={() => push(path.governance())}>
+        <Icon.Wallet />
+      </div>
+    </Tooltip>
     <Tooltip value="Settings">
       <div
         class="item indicator"

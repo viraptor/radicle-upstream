@@ -5,6 +5,7 @@ import type { Urn } from "./urn";
 
 export const blank = (): string => "/";
 export const settings = (): string => "/settings";
+export const governance = (): string => "/governance";
 
 export const profile = (): string => "/profile";
 export const profileOnboard = (): string => "/profile/onboard";

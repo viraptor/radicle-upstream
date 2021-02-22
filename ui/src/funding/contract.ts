@@ -7,6 +7,8 @@ import {
   Erc20Pool__factory as PoolFactory,
   ERC20,
   ERC20__factory as Erc20Factory,
+  Governor,
+  Governor__factory as GovernorFactory,
 } from "radicle-contracts/build/contract-bindings/ethers";
 
 import * as ethereum from "../ethereum";
@@ -20,6 +22,11 @@ const addresses = {
     local: "0xf34a89802590f944e3de71b1f74d66ed1bafc9cd",
     ropsten: "0xD069f9Cbe64979953357bCa3f21d902e775f1F48",
   },
+  gov: {
+    governor: {
+      local: "0x78071e40e26c81c183c6d7dae54e43d4bee5f5c7"
+    }
+  }
 };
 
 // Get the address of the Pool Contract for the given environment
@@ -48,6 +55,10 @@ export function daiTokenAddress(environment: ethereum.Environment): string {
 
 export function daiToken(signer: Signer, address: string): ERC20 {
   return Erc20Factory.connect(address, signer);
+}
+
+export function governor(signer: Signer, address: string): Governor {
+  return GovernorFactory.connect(address, signer);
 }
 
 // PoolContract is a wrapper type around the actual contract, `Erc20Pool`,
@@ -168,3 +179,22 @@ const AVG_SECONDS_IN_WEEK = 604800;
 // The estimated number of Ethereum blocks mined in a week
 const ESTIMATED_BLOCKS_IN_WEEK =
   AVG_SECONDS_IN_WEEK / AVG_ETHEREUM_BLOCK_TIME_SECONDS;
+
+import { store as wallet } from "../wallet";
+import { get, Writable, writable, derived } from "svelte/store";
+
+
+
+export let proposals: Writable<any[]> = writable([]);
+
+export async function goGov() {
+  let gov = derived(
+    wallet,
+    wallet => governor(wallet.signer, addresses.gov.governor.local)
+  );
+
+  gov.subscribe(async g => {
+    let ps = await g.proposals(123);
+    proposals.set(ps);
+  });
+}

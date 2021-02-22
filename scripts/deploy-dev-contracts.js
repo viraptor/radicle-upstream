@@ -31,6 +31,7 @@ async function main() {
   console.log(
     `Erc20 Pool deployed at ${contracts.erc20Pool.address.toLowerCase()}`
   );
+  console.log(`Governor contract deployed at ${contracts.gov.governor.address.toLowerCase()}`);
   console.log("Done.\n");
 
   const devEthAccount = fs

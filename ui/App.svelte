@@ -23,6 +23,7 @@
 
   import Blank from "./Screen/Blank.svelte";
   import Bsod from "./Screen/Bsod.svelte";
+  import Governance from "./Screen/Governance.svelte";
   import Onboarding from "./Screen/Onboarding.svelte";
   import Lock from "./Screen/Lock.svelte";
   import DesignSystemGuide from "./Screen/DesignSystemGuide.svelte";
@@ -45,6 +46,7 @@
 
   const routes = {
     "/": Blank,
+    "/governance": Governance,
     "/onboarding": Onboarding,
     "/lock": Lock,
     "/settings": Settings,
