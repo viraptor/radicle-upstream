@@ -1,3 +1,5 @@
+import { writable, Writable } from "svelte/store";
+
 import * as api from "./api";
 import * as error from "./error";
 import type * as project from "./project";
@@ -6,6 +8,8 @@ import * as validation from "./validation";
 import type * as waitingRoom from "./waitingRoom";
 
 // STATE
+export const projectSearchInputStore: Writable<string> = writable("");
+
 const projectSearchStore = remote.createStore<project.Project>();
 export const projectSearch = projectSearchStore.readable;
 

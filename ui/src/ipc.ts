@@ -2,7 +2,10 @@
 /// <reference path="../../native/preload.d.ts" />
 import * as ipcTypes from "../../native/ipc-types";
 
-export type { ProxyError } from "../../native/ipc-types";
+export type {
+  ProxyError,
+  CustomProtocolInvocation,
+} from "../../native/ipc-types";
 
 // `true` if we are running unit tests with Jest.
 const isNodeTestEnv = Boolean(
@@ -66,6 +69,26 @@ export function listenProxyError(
     "message",
     (_event: unknown, message: ipcTypes.MainMessage) => {
       if (message.kind === ipcTypes.MainMessageKind.PROXY_ERROR) {
+        f(message.data);
+      }
+    }
+  );
+}
+
+// Register a listener for the `ipcTypes.CustomProtocolInvocation` message.
+export function listenCustomProtocolInvocation(
+  f: (customProtocolInvocation: ipcTypes.CustomProtocolInvocation) => void
+): void {
+  if (isNodeTestEnv || isCypressTestEnv) {
+    return;
+  }
+
+  window.electron.ipcRenderer.on(
+    "message",
+    (_event: unknown, message: ipcTypes.MainMessage) => {
+      if (
+        message.kind === ipcTypes.MainMessageKind.CUSTOM_PROTOCOL_INVOCATION
+      ) {
         f(message.data);
       }
     }

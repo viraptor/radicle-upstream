@@ -18,6 +18,7 @@ export interface Error {
 export enum Code {
   BackendTerminated = "BackendTerminated",
   CommitFetchFailure = "CommitFetchFailure",
+  CustomProtocolParseError = "CustomProtocolParseError",
   KeyStoreUnsealFailure = "KeyStoreUnsealFailure",
   LocalStateFetchFailure = "LocalStateFetchFailure",
   ProjectCheckoutFailure = "ProjectCheckoutFailure",
