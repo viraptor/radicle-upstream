@@ -18,9 +18,7 @@ export const register = (): void => {
   });
 
   session.waitUnsealed().then(() => {
-    messageQueue.forEach(message => {
-      handleMessage(message);
-    });
+    messageQueue.forEach(handleMessage);
     unsealed = true;
   });
 };
