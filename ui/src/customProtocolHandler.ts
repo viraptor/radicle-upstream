@@ -3,7 +3,7 @@ import * as session from "./session";
 import * as modal from "./modal";
 import * as path from "./path";
 import * as error from "./error";
-import { projectSearchInputStore } from "./search";
+import { inputStore } from "./search";
 
 export const register = (): void => {
   let unsealed = false;
@@ -29,7 +29,7 @@ const handleMessage = (message: ipc.CustomProtocolInvocation) => {
   const projectId = parseUrl(message.url);
 
   if (projectId) {
-    projectSearchInputStore.set(projectId);
+    inputStore.set(projectId);
     modal.show(path.search());
   } else {
     // show notification that the url could not be parsed

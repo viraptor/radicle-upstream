@@ -8,7 +8,7 @@ import * as validation from "./validation";
 import type * as waitingRoom from "./waitingRoom";
 
 // STATE
-export const projectSearchInputStore: Writable<string> = writable("");
+export const inputStore: Writable<string> = writable("");
 
 const projectSearchStore = remote.createStore<project.Project>();
 export const projectSearch = projectSearchStore.readable;
