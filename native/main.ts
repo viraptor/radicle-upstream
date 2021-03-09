@@ -122,6 +122,18 @@ class WindowManager {
 
     this.window = window;
   }
+
+  focus() {
+    if (!this.window) {
+      return;
+    }
+
+    if (this.window.isMinimized()) {
+      this.window.restore();
+    }
+
+    this.window.focus();
+  }
 }
 
 const windowManager = new WindowManager();
@@ -212,6 +224,7 @@ app.on("will-quit", () => {
   proxyProcessManager.kill();
 });
 
+// Handle custom protocol on macOS
 app.on("open-url", (event, url) => {
   event.preventDefault();
 
@@ -221,27 +234,42 @@ app.on("open-url", (event, url) => {
   });
 });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on("ready", () => {
-  proxyProcessManager.run().then(({ status, signal, output }) => {
-    windowManager.sendMessage({
-      kind: MainMessageKind.PROXY_ERROR,
-      data: {
-        status,
-        signal,
-        output,
-      },
-    });
+if (app.requestSingleInstanceLock()) {
+  // Handle custom protocol on Linux
+  app.on("second-instance", (_event, commandLine, _workingDirectory) => {
+    windowManager.focus();
+    if (commandLine[1] && commandLine[1].toLowerCase().match(/^upstream/)) {
+      windowManager.sendMessage({
+        kind: MainMessageKind.CUSTOM_PROTOCOL_INVOCATION,
+        data: { url: commandLine[1] },
+      });
+    }
   });
 
-  if (isDev) {
-    setupWatcher();
-  }
+  // This method will be called when Electron has finished
+  // initialization and is ready to create browser windows.
+  // Some APIs can only be used after this event occurs.
+  app.on("ready", () => {
+    proxyProcessManager.run().then(({ status, signal, output }) => {
+      windowManager.sendMessage({
+        kind: MainMessageKind.PROXY_ERROR,
+        data: {
+          status,
+          signal,
+          output,
+        },
+      });
+    });
 
-  windowManager.open();
-});
+    if (isDev) {
+      setupWatcher();
+    }
+
+    windowManager.open();
+  });
+} else {
+  app.quit();
+}
 
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
