@@ -235,7 +235,7 @@ app.on("open-url", (event, url) => {
 });
 
 if (app.requestSingleInstanceLock()) {
-  // Handle custom protocol on Linux
+  // Handle custom protocol on Linux when Upstream is already running
   app.on("second-instance", (_event, commandLine, _workingDirectory) => {
     windowManager.focus();
     if (commandLine[1] && commandLine[1].toLowerCase().match(/^upstream/)) {
@@ -245,6 +245,14 @@ if (app.requestSingleInstanceLock()) {
       });
     }
   });
+
+  // Handle custom protocol on Linux when Upstream is not running
+  if (process.argv[1] && process.argv[1].toLowerCase().match(/^upstream/)) {
+    windowManager.sendMessage({
+      kind: MainMessageKind.CUSTOM_PROTOCOL_INVOCATION,
+      data: { url: process.argv[1] },
+    });
+  }
 
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
