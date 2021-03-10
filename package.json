@@ -40,9 +40,9 @@
     ],
     "protocols": [
       {
-        "name": "upstream",
+        "name": "radicle",
         "schemes": [
-          "upstream"
+          "radicle"
         ]
       }
     ],

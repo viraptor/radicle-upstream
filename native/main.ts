@@ -238,7 +238,7 @@ if (app.requestSingleInstanceLock()) {
   // Handle custom protocol on Linux when Upstream is already running
   app.on("second-instance", (_event, commandLine, _workingDirectory) => {
     windowManager.focus();
-    if (commandLine[1] && commandLine[1].toLowerCase().match(/^upstream/)) {
+    if (commandLine[1] && commandLine[1].toLowerCase().match(/^radicle:\/\//)) {
       windowManager.sendMessage({
         kind: MainMessageKind.CUSTOM_PROTOCOL_INVOCATION,
         data: { url: commandLine[1] },
@@ -247,7 +247,7 @@ if (app.requestSingleInstanceLock()) {
   });
 
   // Handle custom protocol on Linux when Upstream is not running
-  if (process.argv[1] && process.argv[1].toLowerCase().match(/^upstream/)) {
+  if (process.argv[1] && process.argv[1].toLowerCase().match(/^radicle:\/\//)) {
     windowManager.sendMessage({
       kind: MainMessageKind.CUSTOM_PROTOCOL_INVOCATION,
       data: { url: process.argv[1] },
