@@ -6,20 +6,10 @@ import * as error from "./error";
 import { inputStore } from "./search";
 
 export const register = (): void => {
-  let unsealed = false;
-  const messageQueue: ipc.CustomProtocolInvocation[] = [];
-
   ipc.listenCustomProtocolInvocation(message => {
-    if (unsealed) {
+    session.waitUnsealed().then(() => {
       handleMessage(message);
-    } else {
-      messageQueue.push(message);
-    }
-  });
-
-  session.waitUnsealed().then(() => {
-    messageQueue.forEach(handleMessage);
-    unsealed = true;
+    });
   });
 };
 
@@ -30,7 +20,6 @@ const handleMessage = (message: ipc.CustomProtocolInvocation) => {
     inputStore.set(projectId);
     modal.show(path.search());
   } else {
-    // show notification that the url could not be parsed
     error.show({
       code: error.Code.CustomProtocolParseError,
       message: "Could not extract project Radicle ID from the provided URL",
