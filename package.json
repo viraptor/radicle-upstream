@@ -180,7 +180,8 @@
     "timeago.js": "^4.0.2",
     "twemoji": "13.0.2",
     "uuid": "^8.3.0",
-    "validate.js": "^0.13.1"
+    "validate.js": "^0.13.1",
+    "zod": "^3.0.0-alpha.24"
   },
   "husky": {
     "hooks": {

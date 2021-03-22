@@ -10036,6 +10036,7 @@ __metadata:
     uuid: ^8.3.0
     validate.js: ^0.13.1
     wait-on: ^5.2.1
+    zod: ^3.0.0-alpha.24
   languageName: unknown
   linkType: soft
 
@@ -13180,5 +13181,12 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 096c3b40beb2804659539be1605a35c58eb0c85285f94b77b3e924f42ee265c1a40bf9f4153770039517146b469a964d51742395f35ca8135fc9f7e4982b785d
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.0.0-alpha.24":
+  version: 3.0.0-alpha.32
+  resolution: "zod@npm:3.0.0-alpha.32"
+  checksum: 7644bd4e9a5df4e4398ad89a6b601ef7a4a228c72bf91066460457d5443389b758bc1029c1546dd236d45aa94fe6683d04d3aaec3af96e0da3a6204dc2f43391
   languageName: node
   linkType: hard
