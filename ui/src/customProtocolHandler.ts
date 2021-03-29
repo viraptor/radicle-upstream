@@ -6,10 +6,9 @@ import * as error from "./error";
 import { inputStore } from "./search";
 
 export const register = (): void => {
-  ipc.listenCustomProtocolInvocation(message => {
-    session.waitUnsealed().then(() => {
-      handleMessage(message);
-    });
+  ipc.listenCustomProtocolInvocation(async message => {
+    await session.waitUnsealed();
+    handleMessage(message);
   });
 };
 
