@@ -5,24 +5,25 @@ TIMEFORMAT='elapsed time: %R (user: %U, system: %S)'
 
 source .buildkite/env.sh
 
-echo "--- Removing old Yarn temp dir"
-du -hs "$YARN_TEMPDIR"
-rm -rf "$YARN_TEMPDIR"
-mkdir -p "$YARN_TEMPDIR"
-
 echo "--- Installing yarn dependencies"
-time TMPDIR="$YARN_TEMPDIR" yarn install --frozen-lockfile
+yarn install --immutable
 
 echo "--- Loading proxy target cache"
-declare -r target_cache="$CACHE_FOLDER/proxy-target"
 
-mkdir -p "$target_cache"
+declare -r rust_target_cache="$CACHE_FOLDER/proxy-target"
+mkdir -p "$rust_target_cache"
+ln -s "${rust_target_cache}" ./target
 
-if [[ -d "$target_cache" ]]; then
-	ln -s "$target_cache" ./target
-  echo "Size of $target_cache is $(du -sh "$target_cache" | cut -f 1)"
-else
-  echo "Cache $target_cache not available"
+if [[ "${BUILDKITE_AGENT_META_DATA_PLATFORM:-}" != "macos" ]]; then
+  free_cache_space_kb=$(df --output=avail /cache | sed -n 2p)
+  min_free_cache_kb=$(( 2 * 1024 * 1024 )) # 2GiB is 25%
+  echo "$(( free_cache_space_kb / 1024 )) MiB free space on /cache"
+  if [[ $free_cache_space_kb -le $min_free_cache_kb ]]; then
+    echo "Not enough free space on /cache. Deleting ${rust_target_cache}"
+    du -sh /cache/*
+    rm -r "${rust_target_cache}"
+    mkdir -p "${rust_target_cache}"
+  fi
 fi
 
 echo "--- Updating submodules"
@@ -57,8 +58,12 @@ echo "--- Run proxy tests"
 (
   export RUST_TEST_TIME_UNIT=2000,4000
   export RUST_TEST_TIME_INTEGRATION=2000,8000
+  cargo build --tests --all --all-features --all-targets
   timeout 6m cargo test --all --all-features --all-targets -- -Z unstable-options --report-time
 )
+
+echo "--- Bundle electron main files"
+time yarn run rollup -c rollup.electron.js
 
 echo "--- Starting proxy daemon and runing app tests"
 time ELECTRON_ENABLE_LOGGING=1 yarn test

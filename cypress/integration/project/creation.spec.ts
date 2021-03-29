@@ -12,7 +12,7 @@ context("project creation", () => {
       cy.exec(`mkdir -p ${emptyDirectoryPath}`);
 
       ipcStub.getStubs().then(stubs => {
-        stubs.IPC_DIALOG_SHOWOPENDIALOG.returns(emptyDirectoryPath);
+        stubs.selectDirectory.returns(emptyDirectoryPath);
       });
 
       callback();
@@ -33,7 +33,7 @@ context("project creation", () => {
 
       // stub native call and return the directory path to the UI
       ipcStub.getStubs().then(stubs => {
-        stubs.IPC_DIALOG_SHOWOPENDIALOG.returns(noCommitsRepoPath);
+        stubs.selectDirectory.returns(noCommitsRepoPath);
       });
 
       callback();
@@ -68,7 +68,7 @@ context("project creation", () => {
 
       // stub native call and return the directory path to the UI
       ipcStub.getStubs().then(stubs => {
-        stubs.IPC_DIALOG_SHOWOPENDIALOG.returns(platinumPath);
+        stubs.selectDirectory.returns(platinumPath);
       });
 
       callback(repoName);
@@ -334,7 +334,7 @@ context("project creation", () => {
 
         it("picks the Upstream default git branch when it can not obtain the git global config one", () => {
           ipcStub.getStubs().then(stubs => {
-            stubs.GET_GIT_GLOBAL_DEFAULT_BRANCH.returns(undefined);
+            stubs.getGitGlobalDefaultBranch.returns(undefined);
           });
           go(config.UPSTREAM_DEFAULT_BRANCH);
         });
@@ -397,7 +397,7 @@ context("project creation", () => {
           commands
             .pick("notification")
             .contains(
-              /Could not create project: the identity 'rad:git:[\w]{3}…[\w]{3}' already exists/
+              /Could not create project: the URN `rad:git:[1-9A-HJ-NP-Za-km-z]{37}` already exists/
             )
             .should("exist");
         });

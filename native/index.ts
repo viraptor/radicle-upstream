@@ -10,7 +10,12 @@ import {
 import fs from "fs";
 import path from "path";
 import { ProxyProcessManager } from "./proxy-process-manager";
-import { RendererMessage, MainMessage, MainMessageKind } from "./ipc-types";
+import {
+  MainMessage,
+  MainMessageKind,
+  MainProcess,
+  mainProcessMethods,
+} from "./ipc-types";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -31,12 +36,16 @@ if (isDev) {
       Boolean
     );
   }
+  proxyArgs.push("--default-seed");
+  proxyArgs.push(
+    "hybz9gfgtd9d4pd14a6r66j5hz6f77fed4jdu7pana4fxaxbt369kg@setzling.radicle.xyz:12345"
+  );
 } else {
   // Packaged app, i.e. production.
   proxyPath = path.join(__dirname, "../../radicle-proxy");
   proxyArgs = [
     "--default-seed",
-    "hynewpywqj6x4mxgj7sojhue3erucyexiyhobxx4du9w66hxhbfqbw@seedling.radicle.xyz:12345",
+    "hynkyndc6w3p8urucakobzna7sxwgcqny7xxtw88dtx3pkf7m3nrzc@sprout.radicle.xyz:12345",
   ];
 }
 
@@ -89,6 +98,7 @@ class WindowManager {
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
+        contextIsolation: true,
       },
     });
 
@@ -118,7 +128,15 @@ class WindowManager {
       this.messages = [];
     });
 
-    window.loadURL(`file://${path.join(__dirname, "../public/index.html")}`);
+    let uiUrl;
+
+    if (isDev && process.env.RADICLE_UPSTREAM_UI_ARGS) {
+      uiUrl = `../public/index.html?${process.env.RADICLE_UPSTREAM_UI_ARGS}`;
+    } else {
+      uiUrl = "../public/index.html";
+    }
+
+    window.loadURL(`file://${path.join(__dirname, uiUrl)}`);
 
     this.window = window;
   }
@@ -143,51 +161,51 @@ const proxyProcessManager = new ProxyProcessManager({
   lineLimit: 500,
 });
 
-ipcMain.handle(RendererMessage.DIALOG_SHOWOPENDIALOG, async () => {
-  const window = windowManager.window;
-  if (window === null) {
-    return;
-  }
-
-  const result = await dialog.showOpenDialog(window, {
-    properties: ["openDirectory", "showHiddenFiles", "createDirectory"],
+function installMainProcessHandler(handler: MainProcess) {
+  mainProcessMethods.forEach(method => {
+    ipcMain.handle(method, async (_event, arg) => handler[method](arg));
   });
+}
 
-  if (result.filePaths.length === 1) {
-    return result.filePaths[0];
-  } else {
-    return "";
-  }
-});
+installMainProcessHandler({
+  async clipboardWriteText(text: string): Promise<void> {
+    clipboard.writeText(text);
+  },
+  async getVersion(): Promise<string> {
+    return app.getVersion();
+  },
+  async openPath(path: string): Promise<void> {
+    shell.openPath(path);
+  },
+  async openUrl(url: string): Promise<void> {
+    openExternalLink(url);
+  },
+  async getGitGlobalDefaultBranch(): Promise<string | undefined> {
+    try {
+      const { stdout, stderr } = await execAsync(
+        "git config --global --get init.defaultBranch"
+      );
+      return stderr ? undefined : stdout.trim();
+    } catch (error) {
+      return undefined;
+    }
+  },
+  async selectDirectory(): Promise<string> {
+    const window = windowManager.window;
+    if (window === null) {
+      return "";
+    }
 
-ipcMain.handle(RendererMessage.CLIPBOARD_WRITETEXT, async (_event, text) => {
-  clipboard.writeText(text);
-});
+    const result = await dialog.showOpenDialog(window, {
+      properties: ["openDirectory", "showHiddenFiles", "createDirectory"],
+    });
 
-ipcMain.handle(RendererMessage.OPEN_PATH, async (_event, path) => {
-  shell.openPath(path);
-});
-
-ipcMain.handle(RendererMessage.GET_VERSION, () => {
-  return app.getVersion();
-});
-
-ipcMain.handle(RendererMessage.OPEN_URL, (_event, url) => {
-  openExternalLink(url);
-});
-
-// Fetch the git global default branch config property. Fails when the git version
-// running on the machine does it yet support.
-// Returns a value in the form `Promise<string | undefined>`.
-ipcMain.handle(RendererMessage.GET_GIT_GLOBAL_DEFAULT_BRANCH, async () => {
-  try {
-    const { stdout, stderr } = await execAsync(
-      "git config --global --get init.defaultBranch"
-    );
-    return stderr ? undefined : stdout.trim();
-  } catch (error) {
-    return undefined;
-  }
+    if (result.filePaths.length === 1) {
+      return result.filePaths[0];
+    } else {
+      return "";
+    }
+  },
 });
 
 function setupWatcher() {
