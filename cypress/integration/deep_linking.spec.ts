@@ -16,17 +16,14 @@ context("deep linking", () => {
           kind: ipcTypes.MainMessageKind.CUSTOM_PROTOCOL_INVOCATION,
           data: {
             url:
-              "radicle://v0/link/rad:git:hwd1yredna5k7undw9xurpm6mtfyczodz4fkute7bcpii3jb9uoj7tf1sho?action=show",
+              "radicle://v0/link/rad:git:hnrkkp3wifc691fw9j9sfed1adp5swfnu3npy?action=show",
           },
         });
       });
 
       commands
         .pick("search-modal", "search-input")
-        .should(
-          "have.value",
-          "rad:git:hwd1yredna5k7undw9xurpm6mtfyczodz4fkute7bcpii3jb9uoj7tf1sho"
-        );
+        .should("have.value", "rad:git:hnrkkp3wifc691fw9j9sfed1adp5swfnu3npy");
       commands
         .pick("search-modal", "follow-toggle")
         .should("contain", "Follow");
