@@ -53,7 +53,7 @@ export function listenProxyError(
 export function listenCustomProtocolInvocation(
   f: (customProtocolInvocation: ipcTypes.CustomProtocolInvocation) => void
 ): void {
-  if (isNodeTestEnv || isCypressTestEnv) {
+  if (config.isNodeTestEnv || config.isCypressTestEnv) {
     return;
   }
 
