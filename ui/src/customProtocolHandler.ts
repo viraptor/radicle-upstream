@@ -28,7 +28,7 @@ const handleMessage = (message: ipc.CustomProtocolInvocation) => {
 };
 
 const parseUrl = (url: string): string | null => {
-  const match = url.match(/(rad:git:[\w]{59})/);
+  const match = url.match(/(rad:git:[1-9A-HJ-NP-Za-km-z]{37})/);
 
   if (match) {
     return match[1];
