@@ -20,6 +20,7 @@ data-encoding = "2.3"
 directories = "2.0"
 eip55 = "0.1.1"
 futures = { version = "0.3", features = [ "compat" ] }
+kv = { version = "0.22", features = [ "json-value" ] }
 lazy_static = "1.4"
 log = "0.4"
 nonempty = { version = "0.6", features = [ "serialize" ] }
@@ -36,17 +37,16 @@ tokio = { version = "1.2", features = [ "macros", "process", "signal", "time" ] 
 url = "2.1"
 warp = { version = "0.3", default-features = false }
 
-[dependencies.kv]
-git = "https://github.com/zshipko/rust-kv.git"
-rev = "a98e1ace84b22ceaac276abf796633bd8e735500"
-features = [ "json-value" ]
-
 [dependencies.coco]
 path = "../coco"
 
+[dependencies.radicle-daemon]
+git = "https://github.com/radicle-dev/radicle-link.git"
+rev = "84a760c0be65548ee2f6871ca2e876fb001de286"
+
 [dependencies.radicle-git-ext]
 git = "https://github.com/radicle-dev/radicle-link.git"
-rev = "9467c364fa232f6563caf7ec123c43ade9c23284"
+rev = "84a760c0be65548ee2f6871ca2e876fb001de286"
 
 [dependencies.radicle-avatar]
 git = "https://github.com/radicle-dev/radicle-avatar.git"

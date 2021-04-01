@@ -34,24 +34,15 @@ pub use librad::{
     profile, signer,
 };
 
-pub use radicle_git_ext as git_ext;
+use radicle_git_ext as git_ext;
 
-pub use radicle_git_helpers::remote_helper;
+use radicle_git_helpers::remote_helper;
 
 pub use radicle_surf::{
     diff::{Diff, FileDiff},
     vcs::git::Stats,
 };
 
-pub mod config;
-pub mod convert;
-pub mod keystore;
-pub mod peer;
-pub use peer::{Control as PeerControl, Event as PeerEvent, Peer, RunConfig, Status as PeerStatus};
-pub mod project;
-pub mod request;
-pub mod state;
-
-pub mod seed;
+mod project;
 
 pub mod source;

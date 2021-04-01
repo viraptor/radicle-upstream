@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::convert::Infallible;
 use warp::{http::StatusCode, reject, reply, Rejection, Reply};
 
-use coco::{project::create, state};
+use radicle_daemon::{project::{self, create}, state};
 
 use crate::error;
 
@@ -72,39 +72,39 @@ pub async fn recover(err: Rejection) -> Result<impl Reply, Infallible> {
         } else if let Some(err) = err.find::<error::Error>() {
             match err {
                 error::Error::State(err) => match err {
-                    coco::state::Error::Checkout(checkout_error) => match checkout_error {
-                        coco::project::checkout::Error::AlreadExists(_) => (
+                    state::Error::Checkout(checkout_error) => match checkout_error {
+                        project::checkout::Error::AlreadExists(_) => (
                             StatusCode::CONFLICT,
                             "PATH_EXISTS",
                             checkout_error.to_string(),
                         ),
-                        coco::project::checkout::Error::Git(git_error) => (
+                        project::checkout::Error::Git(git_error) => (
                             StatusCode::INTERNAL_SERVER_ERROR,
                             "GIT_ERROR",
                             git_error.message().to_string(),
                         ),
-                        coco::project::checkout::Error::Include(include_error) => (
+                        project::checkout::Error::Include(include_error) => (
                             StatusCode::INTERNAL_SERVER_ERROR,
                             "INTERNAL_ERROR",
                             include_error.to_string(),
                         ),
-                        coco::project::checkout::Error::Io(io) => (
+                        project::checkout::Error::Io(io) => (
                             StatusCode::INTERNAL_SERVER_ERROR,
                             "INTERNAL_ERROR",
                             io.to_string(),
                         ),
-                        coco::project::checkout::Error::Transport(err) => (
+                        project::checkout::Error::Transport(err) => (
                             StatusCode::INTERNAL_SERVER_ERROR,
                             "TRANSPORT_ERROR",
                             err.to_string(),
                         ),
-                        coco::project::checkout::Error::Prefix(err) => (
+                        project::checkout::Error::Prefix(err) => (
                             StatusCode::INTERNAL_SERVER_ERROR,
                             "PREFIX_ERROR",
                             err.to_string(),
                         ),
                     },
-                    coco::state::Error::Create(create::Error::Validation(err)) => match err {
+                    state::Error::Create(create::Error::Validation(err)) => match err {
                         create::validation::Error::AlreadExists(_) => {
                             (StatusCode::CONFLICT, "PATH_EXISTS", err.to_string())
                         },
@@ -165,35 +165,35 @@ pub async fn recover(err: Rejection) -> Result<impl Reply, Infallible> {
                             err.to_string(),
                         ),
                     },
-                    coco::state::Error::Git(git_error) => (
+                    state::Error::Git(git_error) => (
                         StatusCode::BAD_REQUEST,
                         "GIT_ERROR",
                         format!("Internal Git error: {:?}", git_error),
                     ),
-                    coco::state::Error::MissingOwner => {
+                    state::Error::MissingOwner => {
                         (StatusCode::UNAUTHORIZED, "UNAUTHORIZED", err.to_string())
                     },
-                    coco::state::Error::Source(coco::source::Error::Git(git_error)) => (
+                    state::Error::Source(coco::source::Error::Git(git_error)) => (
                         StatusCode::BAD_REQUEST,
                         "GIT_ERROR",
                         format!("Internal Git error: {}", git_error),
                     ),
-                    coco::state::Error::Source(coco::source::Error::NoBranches) => (
+                    state::Error::Source(coco::source::Error::NoBranches) => (
                         StatusCode::BAD_REQUEST,
                         "GIT_ERROR",
                         coco::source::Error::NoBranches.to_string(),
                     ),
-                    coco::state::Error::Source(coco::source::Error::PathNotFound(path)) => {
+                    state::Error::Source(coco::source::Error::PathNotFound(path)) => {
                         (StatusCode::NOT_FOUND, "NOT_FOUND", path.to_string())
                     },
-                    coco::state::Error::Storage(state::error::storage::Error::Blob(
+                    state::Error::Storage(state::error::storage::Error::Blob(
                         state::error::blob::Error::NotFound(_),
                     )) => (
                         StatusCode::NOT_FOUND,
                         "NOT_FOUND",
                         "entity not found".to_string(),
                     ),
-                    coco::state::Error::IdentityExists(_) => {
+                    state::Error::IdentityExists(_) => {
                         (StatusCode::CONFLICT, "IDENTITY_EXISTS", err.to_string())
                     },
                     _ => {
@@ -275,10 +275,12 @@ mod tests {
     use serde_json::{json, Value};
     use warp::{reply::Reply as _, Rejection};
 
+    use radicle_daemon::{Urn, git_ext};
+
     #[tokio::test]
     async fn recover_custom() {
-        let urn = coco::Urn::new(
-            coco::git_ext::Oid::try_from("7ab8629dd6da14dcacde7f65b3d58cd291d7e235")
+        let urn = Urn::new(
+            git_ext::Oid::try_from("7ab8629dd6da14dcacde7f65b3d58cd291d7e235")
                 .expect("failed to parse Oid"),
         );
         let message = format!("the current session is in use by `{}`", urn);

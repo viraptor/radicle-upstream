@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{error, identity};
 
+use radicle_daemon::{state, identities};
+
 pub mod settings;
 
 /// Name for the storage bucket used for all session data.
@@ -50,7 +52,7 @@ pub fn get_current(store: &kv::Store) -> Result<Option<Session>, error::Error> {
     Ok(store
         .bucket::<&str, kv::Json<Session>>(Some(BUCKET_NAME))?
         .get(KEY_CURRENT)?
-        .map(kv::Codec::to_inner))
+        .map(|json| json.0))
 }
 
 /// Initialize the current session with the given identity, default settings and default seeds.
@@ -95,9 +97,9 @@ pub fn set_settings(store: &kv::Store, settings: settings::Settings) -> Result<(
 /// Panics if anything goes wrong.
 #[cfg(test)]
 pub async fn initialize_test(ctx: &crate::context::Unsealed, owner_handle: &str) -> Session {
-    let owner = coco::state::init_owner(
+    let owner = state::init_owner(
         &ctx.peer,
-        coco::identities::payload::Person {
+        identities::payload::Person {
             name: owner_handle.into(),
         },
     )

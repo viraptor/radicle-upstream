@@ -2,6 +2,8 @@
 
 use warp::{filters::BoxedFilter, path, Filter, Rejection, Reply};
 
+use radicle_daemon::{git_ext, Urn};
+
 use crate::{context, http};
 
 /// Combination of all routes.
@@ -16,7 +18,7 @@ pub fn filters(ctx: context::Context) -> BoxedFilter<(impl Reply,)> {
 fn cancel_filter(
     ctx: context::Context,
 ) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    path::param::<coco::Urn>()
+    path::param::<Urn>()
         .and(path::end())
         .and(http::with_context_unsealed(ctx))
         .and(warp::delete())
@@ -27,7 +29,7 @@ fn cancel_filter(
 fn create_filter(
     ctx: context::Context,
 ) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    path::param::<coco::Urn>()
+    path::param::<Urn>()
         .and(path::end())
         .and(warp::put())
         .and(http::with_context_unsealed(ctx))
@@ -54,7 +56,7 @@ mod handler {
 
     /// Abort search for an ongoing request.
     pub async fn cancel(
-        urn: coco::Urn,
+        urn: Urn,
         mut ctx: context::Unsealed,
     ) -> Result<impl Reply, Rejection> {
         ctx.peer_control
@@ -70,7 +72,7 @@ mod handler {
     /// FIXME(xla): Endpoint ought to return `201` if the request was newly created, otherwise
     /// `200` if there was a request present for the urn.
     pub async fn create(
-        urn: coco::Urn,
+        urn: Urn,
         mut ctx: context::Unsealed,
     ) -> Result<impl Reply, Rejection> {
         let request = ctx
@@ -106,7 +108,7 @@ mod test {
         let handle = tokio::spawn(run);
         let api = super::filters(ctx.clone().into());
 
-        let urn = coco::Urn::new(coco::git_ext::Oid::try_from(
+        let urn = Urn::new(git_ext::Oid::try_from(
             "7ab8629dd6da14dcacde7f65b3d58cd291d7e235",
         )?);
 
@@ -133,7 +135,7 @@ mod test {
         let handle = tokio::spawn(run);
         let api = super::filters(ctx.clone().into());
 
-        let urn = coco::Urn::new(coco::git_ext::Oid::try_from(
+        let urn = Urn::new(git_ext::Oid::try_from(
             "7ab8629dd6da14dcacde7f65b3d58cd291d7e235",
         )?);
 
@@ -159,7 +161,7 @@ mod test {
         let handle = tokio::spawn(run);
         let api = super::filters(ctx.clone().into());
 
-        let urn = coco::Urn::new(coco::git_ext::Oid::try_from(
+        let urn = Urn::new(git_ext::Oid::try_from(
             "7ab8629dd6da14dcacde7f65b3d58cd291d7e235",
         )?);
 

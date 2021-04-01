@@ -6,7 +6,7 @@ use nonempty::NonEmpty;
 
 use radicle_surf::vcs::git::git2;
 
-use coco::{
+use radicle_daemon::{
     librad::{
         git::{
             identities::local::LocalIdentity,

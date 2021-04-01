@@ -2,26 +2,28 @@
 
 use std::io;
 
+use radicle_daemon::{keystore, state, peer, Urn, request};
+
 /// All error variants the API will return.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Keystore error.
     #[error(transparent)]
-    Keystore(#[from] coco::keystore::Error),
+    Keystore(#[from] keystore::Error),
 
-    /// Error interacting with [`coco::net::peer::Peer`].
+    /// Error interacting with [`radicle_daemon::net::peer::Peer`].
     #[error(transparent)]
-    State(#[from] coco::state::Error),
+    State(#[from] state::Error),
 
     #[error(transparent)]
-    Peer(#[from] coco::peer::Error),
+    Peer(#[from] peer::Error),
 
     /// An I/O error occurred.
     #[error(transparent)]
     Io(#[from] io::Error),
 
     #[error("the current session is in use by `{0}`")]
-    SessionInUse(coco::Urn),
+    SessionInUse(Urn),
 
     /// Issues when access persistent storage.
     #[error(transparent)]
@@ -39,9 +41,9 @@ pub enum Error {
     #[error("invalid authentication token")]
     InvalidAuthCookie,
 
-    /// Errors stemming from [`coco::request::waiting_room::WaitingRoom`] interactions.
+    /// Errors stemming from [`request::waiting_room::WaitingRoom`] interactions.
     #[error(transparent)]
-    WaitingRoom(#[from] coco::request::waiting_room::Error),
+    WaitingRoom(#[from] request::waiting_room::Error),
 
     #[error("project not found")]
     ProjectNotFound,
