@@ -2,7 +2,7 @@
 
 use warp::{filters::BoxedFilter, path, Filter, Rejection, Reply};
 
-use radicle_daemon::{git_ext, Urn};
+use radicle_daemon::Urn;
 
 use crate::{context, http};
 
@@ -51,6 +51,8 @@ mod handler {
     use std::time::SystemTime;
 
     use warp::{http::StatusCode, reply, Rejection, Reply};
+
+    use radicle_daemon::Urn;
 
     use crate::{context, error};
 

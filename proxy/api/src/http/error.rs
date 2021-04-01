@@ -47,6 +47,29 @@ pub struct Error {
     pub variant: String,
 }
 
+fn recover_source(err: &radicle_source::error::Error) -> (StatusCode, &'static str, String) {
+    match err {
+        radicle_source::error::Error::Git(git_error) => (
+            StatusCode::BAD_REQUEST,
+            "GIT_ERROR",
+            format!("Internal Git error: {}", git_error),
+        ),
+        radicle_source::error::Error::NoBranches => (
+            StatusCode::BAD_REQUEST,
+            "GIT_ERROR",
+            radicle_source::error::Error::NoBranches.to_string(),
+        ),
+        radicle_source::error::Error::PathNotFound(path) => {
+            (StatusCode::NOT_FOUND, "NOT_FOUND", path.to_string())
+        },
+        _ => (
+            StatusCode::BAD_REQUEST,
+            "BAD_REQUEST",
+            "Incorrect input".to_string(),
+        )
+    }
+}
+
 /// Handler to convert [`error::Error`] to [`Error`] response.
 #[allow(clippy::too_many_lines)]
 pub async fn recover(err: Rejection) -> Result<impl Reply, Infallible> {
@@ -173,19 +196,6 @@ pub async fn recover(err: Rejection) -> Result<impl Reply, Infallible> {
                     state::Error::MissingOwner => {
                         (StatusCode::UNAUTHORIZED, "UNAUTHORIZED", err.to_string())
                     },
-                    state::Error::Source(coco::source::Error::Git(git_error)) => (
-                        StatusCode::BAD_REQUEST,
-                        "GIT_ERROR",
-                        format!("Internal Git error: {}", git_error),
-                    ),
-                    state::Error::Source(coco::source::Error::NoBranches) => (
-                        StatusCode::BAD_REQUEST,
-                        "GIT_ERROR",
-                        coco::source::Error::NoBranches.to_string(),
-                    ),
-                    state::Error::Source(coco::source::Error::PathNotFound(path)) => {
-                        (StatusCode::NOT_FOUND, "NOT_FOUND", path.to_string())
-                    },
                     state::Error::Storage(state::error::storage::Error::Blob(
                         state::error::blob::Error::NotFound(_),
                     )) => (
@@ -206,6 +216,7 @@ pub async fn recover(err: Rejection) -> Result<impl Reply, Infallible> {
                         )
                     },
                 },
+                error::Error::Source(err) => recover_source(err),
                 error::Error::Keystore(keystore_err) => {
                     if keystore_err.is_invalid_passphrase() {
                         (

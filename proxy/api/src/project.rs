@@ -5,9 +5,10 @@ use std::{collections::HashSet, convert::TryFrom, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 
-use radicle_daemon::{project::peer, signer::BoxedSigner, Urn, state, project, net, Project as RadProject};
+use radicle_daemon::{project::peer, signer::BoxedSigner, Urn, state, project, net, Project as RadProject, Person};
+use radicle_source::surf::vcs::git::Stats;
 
-use crate::{error, identity};
+use crate::{error, identity, browser::with_browser};
 
 /// Object encapsulating project metadata.
 #[derive(Deserialize, Serialize)]
@@ -71,16 +72,16 @@ pub struct Project<S> {
     pub stats: S,
 }
 
-/// A `Partial` project is one where we _weren't_ able to fetch the [`coco::Stats`] for it.
+/// A `Partial` project is one where we _weren't_ able to fetch the [`Stats`] for it.
 pub type Partial = Project<()>;
 
-/// A `Full` project is one where we _were_ able to fetch the [`coco::Stats`] for it.
-pub type Full = Project<coco::Stats>;
+/// A `Full` project is one where we _were_ able to fetch the [`Stats`] for it.
+pub type Full = Project<Stats>;
 
 impl Partial {
     /// Convert a `Partial` project into a `Full` one by providing the `stats` for the project.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn fulfill(self, stats: coco::Stats) -> Full {
+    pub fn fulfill(self, stats: Stats) -> Full {
         Project {
             urn: self.urn,
             shareable_entity_identifier: self.shareable_entity_identifier,
@@ -94,7 +95,7 @@ impl Partial {
 impl TryFrom<RadProject> for Partial {
     type Error = error::Error;
 
-    /// Create a `Project` given a [`RadProject`] and the [`coco::Stats`]
+    /// Create a `Project` given a [`RadProject`] and the [`Stats`]
     /// for the repository.
     fn try_from(project: RadProject) -> Result<Self, Self::Error> {
         let urn = project.urn();
@@ -110,12 +111,12 @@ impl TryFrom<RadProject> for Partial {
 }
 
 /// Construct a Project from its metadata and stats
-impl TryFrom<(RadProject, coco::Stats)> for Full {
+impl TryFrom<(RadProject, Stats)> for Full {
     type Error = error::Error;
 
-    /// Create a `Project` given a [`RadProject`] and the [`coco::Stats`]
+    /// Create a `Project` given a [`RadProject`] and the [`Stats`]
     /// for the repository.
-    fn try_from((project, stats): (RadProject, coco::Stats)) -> Result<Self, Self::Error> {
+    fn try_from((project, stats): (RadProject, Stats)) -> Result<Self, Self::Error> {
         let urn = project.urn();
         let metadata = Metadata::try_from(project)?;
 
@@ -226,7 +227,7 @@ impl Projects {
                     Ok(branch) => branch,
                 };
 
-            let stats = match state::with_browser(peer, default_branch, |browser| {
+            let stats = match with_browser(peer, default_branch, |browser| {
                 Ok(browser.get_stats()?)
             })
             .await
@@ -341,7 +342,7 @@ pub async fn get(
 
     let branch = state::find_default_branch(peer, project_urn.clone()).await?;
     let project_stats =
-        state::with_browser(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
+        with_browser(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
 
     Full::try_from((project, project_stats))
 }
@@ -383,7 +384,7 @@ pub async fn list_for_user(
             )
             .await?;
             let stats =
-                state::with_browser(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
+                with_browser(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
             let full = Full::try_from((project, stats))?;
 
             projects.push(full);

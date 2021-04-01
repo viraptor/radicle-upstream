@@ -5,8 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{error, identity};
 
-use radicle_daemon::{state, identities};
-
 pub mod settings;
 
 /// Name for the storage bucket used for all session data.

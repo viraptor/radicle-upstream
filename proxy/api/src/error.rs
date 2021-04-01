@@ -16,6 +16,9 @@ pub enum Error {
     State(#[from] state::Error),
 
     #[error(transparent)]
+    Source(#[from] radicle_source::error::Error),
+
+    #[error(transparent)]
     Peer(#[from] peer::Error),
 
     /// An I/O error occurred.

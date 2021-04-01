@@ -33,16 +33,3 @@ pub use librad::{
     peer::{conversion, PeerId},
     profile, signer,
 };
-
-use radicle_git_ext as git_ext;
-
-use radicle_git_helpers::remote_helper;
-
-pub use radicle_surf::{
-    diff::{Diff, FileDiff},
-    vcs::git::Stats,
-};
-
-mod project;
-
-pub mod source;

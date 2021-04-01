@@ -72,7 +72,6 @@ dependencies = [
  "async-stream",
  "bytes 1.0.1",
  "chrono",
- "coco",
  "data-encoding",
  "directories 2.0.2",
  "eip55",
@@ -88,7 +87,7 @@ dependencies = [
  "radicle-avatar",
  "radicle-daemon",
  "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "radicle-surf",
+ "radicle-source",
  "rand 0.7.3",
  "secstr",
  "serde",
@@ -417,7 +416,7 @@ dependencies = [
  "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
  "radicle-git-helpers 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
  "radicle-keystore",
- "radicle-surf",
+ "radicle-surf 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_millis",
  "syntect",
@@ -2150,6 +2149,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "radicle-source"
+version = "0.1.0"
+source = "git+https://github.com/radicle-dev/radicle-surf.git?rev=a3f8e3e7f6e9b8c83628cd3c450e719873688dc1#a3f8e3e7f6e9b8c83628cd3c450e719873688dc1"
+dependencies = [
+ "git2",
+ "lazy_static",
+ "log",
+ "nonempty 0.6.0",
+ "radicle-surf 0.5.3 (git+https://github.com/radicle-dev/radicle-surf.git?rev=a3f8e3e7f6e9b8c83628cd3c450e719873688dc1)",
+ "serde",
+ "syntect",
+ "thiserror",
+]
+
+[[package]]
 name = "radicle-std-ext"
 version = "0.1.0"
 source = "git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286#84a760c0be65548ee2f6871ca2e876fb001de286"
@@ -2164,6 +2178,20 @@ name = "radicle-surf"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c92c20edc7b85e69572ee2a23d9f07ec85bee12d456584a1f0b3af872feb3f3"
+dependencies = [
+ "either",
+ "git2",
+ "nom 6.1.2",
+ "nonempty 0.5.0",
+ "regex",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "radicle-surf"
+version = "0.5.3"
+source = "git+https://github.com/radicle-dev/radicle-surf.git?rev=a3f8e3e7f6e9b8c83628cd3c450e719873688dc1#a3f8e3e7f6e9b8c83628cd3c450e719873688dc1"
 dependencies = [
  "either",
  "git2",

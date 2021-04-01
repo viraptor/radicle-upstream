@@ -4,7 +4,7 @@ use std::{env, io, path, str::FromStr};
 
 use nonempty::NonEmpty;
 
-use radicle_surf::vcs::git::git2;
+use radicle_source::surf::vcs::git::git2;
 
 use radicle_daemon::{
     librad::{

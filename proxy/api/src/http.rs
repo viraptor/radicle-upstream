@@ -226,13 +226,13 @@ pub fn guard_self_peer_id(
 #[must_use]
 pub fn guard_self_revision(
     peer: &net::peer::Peer<BoxedSigner>,
-    revision: Option<coco::source::Revision<PeerId>>,
-) -> Option<coco::source::Revision<PeerId>> {
+    revision: Option<radicle_source::Revision<PeerId>>,
+) -> Option<radicle_source::Revision<PeerId>> {
     revision.map(|r| {
-        if let coco::source::Revision::Branch { name, peer_id } = r {
-            coco::source::Revision::Branch {
+        if let radicle_source::Revision::Branch { name, identifier } = r {
+            radicle_source::Revision::Branch {
                 name,
-                peer_id: guard_self_peer_id(peer, peer_id),
+                identifier: guard_self_peer_id(peer, identifier),
             }
         } else {
             r

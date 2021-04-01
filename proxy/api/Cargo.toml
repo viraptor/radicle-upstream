@@ -37,9 +37,6 @@ tokio = { version = "1.2", features = [ "macros", "process", "signal", "time" ] 
 url = "2.1"
 warp = { version = "0.3", default-features = false }
 
-[dependencies.coco]
-path = "../coco"
-
 [dependencies.radicle-daemon]
 git = "https://github.com/radicle-dev/radicle-link.git"
 rev = "84a760c0be65548ee2f6871ca2e876fb001de286"
@@ -52,9 +49,11 @@ rev = "84a760c0be65548ee2f6871ca2e876fb001de286"
 git = "https://github.com/radicle-dev/radicle-avatar.git"
 rev = "4e34e6b992fd9f465b0547a5693b47b0d41dea01"
 
-[dependencies.radicle-surf]
-version = "0.5.0"
-features = ["serialize"]
+# TODO: publish to crates
+[dependencies.radicle-source]
+git = "https://github.com/radicle-dev/radicle-surf.git"
+rev = "a3f8e3e7f6e9b8c83628cd3c450e719873688dc1"
+features = ["syntax"]
 
 [dev-dependencies]
 bytes = "1.0"

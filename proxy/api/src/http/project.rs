@@ -154,9 +154,9 @@ mod handler {
 
     use warp::{http::StatusCode, reply, Rejection, Reply};
 
-    use radicle_daemon::{Urn, state, LocalIdentity};
+    use radicle_daemon::{Urn, state, LocalIdentity, PeerId};
 
-    use crate::{context, error::Error, http, project};
+    use crate::{context, error::Error, http, browser::with_browser, project};
 
     /// Checkout a [`project::Project`]'s source code.
     pub async fn checkout(
@@ -190,8 +190,8 @@ mod handler {
         )
         .await
         .map_err(Error::from)?;
-        let stats = state::with_browser(&ctx.peer, branch, |browser| {
-            browser.get_stats().map_err(coco::source::Error::from)
+        let stats = with_browser(&ctx.peer, branch, |browser| {
+            browser.get_stats().map_err(radicle_source::Error::from)
         })
         .await
         .map_err(Error::from)?;
