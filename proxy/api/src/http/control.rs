@@ -55,7 +55,7 @@ mod handler {
 
     use radicle_daemon::{state, LocalIdentity};
 
-    use crate::{context, error, project, browser::with_browser};
+    use crate::{browser, context, error, project};
 
     /// Create a project from the fixture repo.
     #[allow(clippy::let_underscore_must_use)]
@@ -82,10 +82,9 @@ mod handler {
         let branch = state::get_branch(&ctx.peer, meta.urn(), None, None)
             .await
             .map_err(error::Error::from)?;
-        let stats =
-            with_browser(&ctx.peer, branch, |browser| Ok(browser.get_stats()?))
-                .await
-                .map_err(error::Error::from)?;
+        let stats = browser::using(&ctx.peer, branch, |browser| Ok(browser.get_stats()?))
+            .await
+            .map_err(error::Error::from)?;
         let project = project::Full::try_from((meta, stats))?;
 
         Ok(reply::with_status(

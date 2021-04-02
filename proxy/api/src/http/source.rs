@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use warp::{filters::BoxedFilter, path, Filter, Rejection, Reply};
 
-use radicle_daemon::{Urn, git_ext, PeerId};
+use radicle_daemon::{git_ext, PeerId, Urn};
 
 use crate::{context, http};
 
@@ -107,9 +107,9 @@ fn tree_filter(
 mod handler {
     use warp::{path::Tail, reply, Rejection, Reply};
 
-    use radicle_daemon::{git_ext::Oid, Urn, state};
+    use radicle_daemon::{git_ext::Oid, state, Urn};
 
-    use crate::{context, error, session, session::settings, browser::with_browser};
+    use crate::{browser, context, error, session, session::settings};
 
     /// Fetch a [`radicle_source::Blob`].
     pub async fn blob(
@@ -140,7 +140,7 @@ mod handler {
         let branch = state::get_branch(&ctx.peer, project_urn, peer_id, None)
             .await
             .map_err(error::Error::from)?;
-        let blob = with_browser(&ctx.peer, branch, |browser| {
+        let blob = browser::using(&ctx.peer, branch, |browser| {
             radicle_source::blob::highlighting::blob(browser, revision, &path, theme)
         })
         .await
@@ -159,8 +159,11 @@ mod handler {
         let default_branch = state::get_branch(&ctx.peer, project_urn, peer_id, None)
             .await
             .map_err(error::Error::from)?;
-        let branches = with_browser(&ctx.peer, default_branch, |browser| {
-            radicle_source::branches(browser, Some(radicle_source::revision::into_branch_type(peer_id)))
+        let branches = browser::using(&ctx.peer, default_branch, |browser| {
+            radicle_source::branches(
+                browser,
+                Some(radicle_source::revision::into_branch_type(peer_id)),
+            )
         })
         .await
         .map_err(error::Error::from)?;
@@ -177,7 +180,7 @@ mod handler {
         let default_branch = state::find_default_branch(&ctx.peer, project_urn)
             .await
             .map_err(error::Error::from)?;
-        let commit = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let commit = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::commit(&mut browser, *sha1)
         })
         .await
@@ -197,7 +200,7 @@ mod handler {
         let default_branch = state::find_default_branch(&ctx.peer, project_urn)
             .await
             .map_err(error::Error::from)?;
-        let commits = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let commits = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::commits(&mut browser, revision)
         })
         .await
@@ -208,8 +211,8 @@ mod handler {
 
     /// Fetch the list [`radicle_source::Branch`] for a local repository.
     pub async fn local_state(path: Tail) -> Result<impl Reply, Rejection> {
-        let state = radicle_source::local_state(path.as_str(), "master")
-            .map_err(error::Error::from)?;
+        let state =
+            radicle_source::local_state(path.as_str(), "master").map_err(error::Error::from)?;
 
         Ok(reply::json(&state))
     }
@@ -223,10 +226,9 @@ mod handler {
         let branch = state::find_default_branch(&ctx.peer, project_urn)
             .await
             .map_err(error::Error::from)?;
-        let tags =
-            with_browser(&ctx.peer, branch, |browser| radicle_source::tags(browser))
-                .await
-                .map_err(error::Error::from)?;
+        let tags = browser::using(&ctx.peer, branch, |browser| radicle_source::tags(browser))
+            .await
+            .map_err(error::Error::from)?;
 
         Ok(reply::json(&tags))
     }
@@ -246,7 +248,7 @@ mod handler {
         let branch = state::get_branch(&ctx.peer, project_urn, peer_id, None)
             .await
             .map_err(error::Error::from)?;
-        let tree = with_browser(&ctx.peer, branch, |mut browser| {
+        let tree = browser::using(&ctx.peer, branch, |mut browser| {
             radicle_source::tree(&mut browser, revision, prefix)
         })
         .await
@@ -309,15 +311,15 @@ pub struct TagQuery {
 #[allow(clippy::non_ascii_literal, clippy::unwrap_used)]
 #[cfg(test)]
 mod test {
-    use std::{env, convert::TryFrom as _};
+    use std::{convert::TryFrom as _, env};
 
     use pretty_assertions::assert_eq;
     use serde_json::{json, Value};
     use warp::{http::StatusCode, test::request};
 
-    use radicle_daemon::{state, Urn, git_ext, identities};
+    use radicle_daemon::{git_ext, identities, state, Urn};
 
-    use crate::{context, error, http, browser::with_browser};
+    use crate::{browser, context, error, http};
 
     #[tokio::test]
     async fn blob() -> Result<(), Box<dyn std::error::Error>> {
@@ -332,7 +334,7 @@ mod test {
         };
         let arrows = "text/arrows.txt";
         let default_branch = state::find_default_branch(&ctx.peer, urn.clone()).await?;
-        let want = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let want = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::blob(&mut browser, Some(revision.clone()), arrows)
         })
         .await?;
@@ -390,7 +392,7 @@ mod test {
         // Get binary blob.
         let ls = "bin/ls";
         let default_branch = state::find_default_branch(&ctx.peer, urn.clone()).await?;
-        let want = with_browser(&ctx.peer, default_branch, |browser| {
+        let want = browser::using(&ctx.peer, default_branch, |browser| {
             radicle_source::blob(browser, Some(revision.clone()), ls)
         })
         .await?;
@@ -471,7 +473,7 @@ mod test {
             .await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let want = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::blob(&mut browser, Some(revision), path)
         })
         .await?;
@@ -497,7 +499,7 @@ mod test {
             .await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |browser| {
+        let want = browser::using(&ctx.peer, default_branch, |browser| {
             radicle_source::branches(browser, None)
         })
         .await?;
@@ -527,7 +529,7 @@ mod test {
             .await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let want = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::commit::header(&mut browser, *sha1)
         })
         .await?;
@@ -583,7 +585,7 @@ mod test {
             .await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let want = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::commits(&mut browser, Some(revision.clone()))
         })
         .await?;
@@ -643,7 +645,7 @@ mod test {
             .await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |browser| {
+        let want = browser::using(&ctx.peer, default_branch, |browser| {
             radicle_source::tags(browser)
         })
         .await?;
@@ -679,7 +681,7 @@ mod test {
         let res = request().method("GET").path(&path).reply(&api).await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let want = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::tree(&mut browser, Some(revision), Some(prefix.to_string()))
         })
         .await?;
@@ -751,7 +753,7 @@ mod test {
         let res = request().method("GET").path(&path).reply(&api).await;
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
-        let want = with_browser(&ctx.peer, default_branch, |mut browser| {
+        let want = browser::using(&ctx.peer, default_branch, |mut browser| {
             radicle_source::tree(&mut browser, Some(revision), None)
         })
         .await?;

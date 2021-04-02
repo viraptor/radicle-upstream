@@ -1,7 +1,12 @@
 use std::convert::TryFrom as _;
 
-use radicle_source::{surf::vcs::git, error};
-use radicle_daemon::{signer::BoxedSigner, state, net, librad::git::types::{Reference, Single}};
+use radicle_daemon::{
+    librad::git::types::{Reference, Single},
+    net,
+    signer::BoxedSigner,
+    state,
+};
+use radicle_source::{error, surf::vcs::git};
 
 use crate::error::Error;
 
@@ -16,7 +21,7 @@ use crate::error::Error;
 ///   * If we could not open the backing storage.
 ///   * If we could not initialise the `Browser`.
 ///   * If the callback provided returned an error.
-pub async fn with_browser<T, F>(
+pub async fn using<T, F>(
     peer: &net::peer::Peer<BoxedSigner>,
     reference: Reference<Single>,
     callback: F,
@@ -30,7 +35,8 @@ where
             .ok_or(state::Error::MissingNamespace)?
             .to_string()
             .as_str(),
-    ).map_err(error::Error::from)?;
+    )
+    .map_err(error::Error::from)?;
 
     let branch = match reference.remote {
         None => git::Branch::local(reference.name.as_str()),
@@ -47,5 +53,3 @@ where
 
     Ok(callback(&mut browser)?)
 }
-
-

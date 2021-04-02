@@ -3,8 +3,8 @@
 
 use crate::ethereum::address::Address;
 use chrono::{DateTime, Utc};
-use radicle_daemon::identities::payload::HasNamespace;
 use lazy_static::lazy_static;
+use radicle_daemon::identities::payload::HasNamespace;
 use serde::{Deserialize, Serialize};
 use url::Url;
 

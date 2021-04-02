@@ -5,10 +5,12 @@ use std::{collections::HashSet, convert::TryFrom, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 
-use radicle_daemon::{project::peer, signer::BoxedSigner, Urn, state, project, net, Project as RadProject, Person};
+use radicle_daemon::{
+    net, project, project::peer, signer::BoxedSigner, state, Person, Project as RadProject, Urn,
+};
 use radicle_source::surf::vcs::git::Stats;
 
-use crate::{error, identity, browser::with_browser};
+use crate::{browser, error, identity};
 
 /// Object encapsulating project metadata.
 #[derive(Deserialize, Serialize)]
@@ -217,20 +219,17 @@ impl Projects {
 
         for project in state::list_projects(peer).await? {
             let project = Project::try_from(project)?;
-            let default_branch =
-                match state::find_default_branch(peer, project.urn.clone()).await {
-                    Err(err) => {
-                        log::warn!("Failure for '{}': {}", project.urn, err);
-                        projects.failures.push(Failure::DefaultBranch(project));
-                        continue;
-                    },
-                    Ok(branch) => branch,
-                };
+            let default_branch = match state::find_default_branch(peer, project.urn.clone()).await {
+                Err(err) => {
+                    log::warn!("Failure for '{}': {}", project.urn, err);
+                    projects.failures.push(Failure::DefaultBranch(project));
+                    continue;
+                },
+                Ok(branch) => branch,
+            };
 
-            let stats = match with_browser(peer, default_branch, |browser| {
-                Ok(browser.get_stats()?)
-            })
-            .await
+            let stats = match browser::using(peer, default_branch, |browser| Ok(browser.get_stats()?))
+                .await
             {
                 Err(err) => {
                     log::warn!("Failure for '{}': {}", project.urn, err);
@@ -341,8 +340,7 @@ pub async fn get(
         .ok_or(crate::error::Error::ProjectNotFound)?;
 
     let branch = state::find_default_branch(peer, project_urn.clone()).await?;
-    let project_stats =
-        with_browser(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
+    let project_stats = browser::using(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
 
     Full::try_from((project, project_stats))
 }
@@ -383,8 +381,7 @@ pub async fn list_for_user(
                 subject.default_branch.to_owned(),
             )
             .await?;
-            let stats =
-                with_browser(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
+            let stats = browser::using(peer, branch, |browser| Ok(browser.get_stats()?)).await?;
             let full = Full::try_from((project, stats))?;
 
             projects.push(full);

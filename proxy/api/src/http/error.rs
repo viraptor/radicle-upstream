@@ -5,7 +5,10 @@ use serde::Serialize;
 use std::convert::Infallible;
 use warp::{http::StatusCode, reject, reply, Rejection, Reply};
 
-use radicle_daemon::{project::{self, create}, state};
+use radicle_daemon::{
+    project::{self, create},
+    state,
+};
 
 use crate::error;
 
@@ -66,7 +69,7 @@ fn recover_source(err: &radicle_source::error::Error) -> (StatusCode, &'static s
             StatusCode::BAD_REQUEST,
             "BAD_REQUEST",
             "Incorrect input".to_string(),
-        )
+        ),
     }
 }
 
@@ -286,7 +289,7 @@ mod tests {
     use serde_json::{json, Value};
     use warp::{reply::Reply as _, Rejection};
 
-    use radicle_daemon::{Urn, git_ext};
+    use radicle_daemon::{git_ext, Urn};
 
     #[tokio::test]
     async fn recover_custom() {

@@ -5,7 +5,7 @@ use std::{fmt, str::FromStr};
 
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 
-use radicle_daemon::{identities::Person, PeerId, librad::peer::conversion};
+use radicle_daemon::{identities::Person, librad::peer::conversion, PeerId};
 
 /// Errors captured when parsing a shareable identifier of the form `<handle>@<urn>`.
 #[derive(Debug, thiserror::Error)]

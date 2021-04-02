@@ -12,7 +12,9 @@ use tokio::{
     sync::{watch, RwLock},
 };
 
-use radicle_daemon::{convert::MaybeFrom as _, peer::run_config, seed, signer, Peer, RunConfig, PeerStatus};
+use radicle_daemon::{
+    convert::MaybeFrom as _, peer::run_config, seed, signer, Peer, PeerStatus, RunConfig,
+};
 
 use crate::{config, context, git_helper, http, notification, service, session};
 
@@ -86,7 +88,9 @@ pub async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         let result = run_rigging(rigging, notified_restart).await;
         match result {
             // We've been shut down, ignore
-            Err(RunError::Peer(radicle_daemon::peer::Error::Join(_))) | Ok(()) => log::debug!("aborted"),
+            Err(RunError::Peer(radicle_daemon::peer::Error::Join(_))) | Ok(()) => {
+                log::debug!("aborted")
+            },
             // Actual error, abort the process
             Err(e) => return Err(e.into()),
         };

@@ -11,7 +11,7 @@ use std::{
 use serde::Serialize;
 use tokio::sync::{mpsc, RwLock};
 
-use radicle_daemon::{convert::MaybeFrom, PeerEvent, PeerStatus, PeerId, Urn};
+use radicle_daemon::{convert::MaybeFrom, PeerEvent, PeerId, PeerStatus, Urn};
 
 /// Significant events happening during proxy runtime.
 #[derive(Clone, Debug)]

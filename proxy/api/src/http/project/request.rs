@@ -57,10 +57,7 @@ mod handler {
     use crate::{context, error};
 
     /// Abort search for an ongoing request.
-    pub async fn cancel(
-        urn: Urn,
-        mut ctx: context::Unsealed,
-    ) -> Result<impl Reply, Rejection> {
+    pub async fn cancel(urn: Urn, mut ctx: context::Unsealed) -> Result<impl Reply, Rejection> {
         ctx.peer_control
             .cancel_project_request(&urn, SystemTime::now())
             .await
@@ -73,10 +70,7 @@ mod handler {
     ///
     /// FIXME(xla): Endpoint ought to return `201` if the request was newly created, otherwise
     /// `200` if there was a request present for the urn.
-    pub async fn create(
-        urn: Urn,
-        mut ctx: context::Unsealed,
-    ) -> Result<impl Reply, Rejection> {
+    pub async fn create(urn: Urn, mut ctx: context::Unsealed) -> Result<impl Reply, Rejection> {
         let request = ctx
             .peer_control
             .request_project(&urn, SystemTime::now())
@@ -95,13 +89,13 @@ mod handler {
 
 #[cfg(test)]
 mod test {
-    use std::{time::SystemTime, convert::TryFrom as _};
+    use std::{convert::TryFrom as _, time::SystemTime};
 
     use pretty_assertions::assert_eq;
     use serde_json::json;
     use warp::{http::StatusCode, test::request};
 
-    use radicle_daemon::{Urn, git_ext};
+    use radicle_daemon::{git_ext, Urn};
 
     use crate::{context, http};
 

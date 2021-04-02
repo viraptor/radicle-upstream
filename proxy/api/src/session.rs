@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
-use radicle_daemon::{state, identities};
+use radicle_daemon::{identities, state};
 
 use crate::{error, identity};
 

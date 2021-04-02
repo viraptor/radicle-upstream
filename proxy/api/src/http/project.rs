@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use warp::{filters::BoxedFilter, path, Filter, Rejection, Reply};
 
-use radicle_daemon::{Urn, PeerId};
+use radicle_daemon::{PeerId, Urn};
 
 use crate::{context, http};
 
@@ -154,9 +154,9 @@ mod handler {
 
     use warp::{http::StatusCode, reply, Rejection, Reply};
 
-    use radicle_daemon::{Urn, state, LocalIdentity, PeerId};
+    use radicle_daemon::{state, LocalIdentity, PeerId, Urn};
 
-    use crate::{context, error::Error, http, browser::with_browser, project};
+    use crate::{browser, context, error::Error, http, project};
 
     /// Checkout a [`project::Project`]'s source code.
     pub async fn checkout(
@@ -190,7 +190,7 @@ mod handler {
         )
         .await
         .map_err(Error::from)?;
-        let stats = with_browser(&ctx.peer, branch, |browser| {
+        let stats = browser::using(&ctx.peer, branch, |browser| {
             browser.get_stats().map_err(radicle_source::Error::from)
         })
         .await
@@ -233,10 +233,7 @@ mod handler {
     /// `user` (i.e. the "default user"), but rather should be another user that you are tracking.
     ///
     /// See [`project::list_for_user`] for more information.
-    pub async fn list_user(
-        user_id: Urn,
-        ctx: context::Unsealed,
-    ) -> Result<impl Reply, Rejection> {
+    pub async fn list_user(user_id: Urn, ctx: context::Unsealed) -> Result<impl Reply, Rejection> {
         let projects = project::list_for_user(&ctx.peer, &user_id).await?;
 
         Ok(reply::json(&projects))
@@ -319,7 +316,9 @@ mod test {
     use serde_json::{json, Value};
     use warp::{http::StatusCode, test::request};
 
-    use radicle_daemon::{identities::payload::Person, state::init_owner, LocalUrl, config, state, include};
+    use radicle_daemon::{
+        config, identities::payload::Person, include, state, state::init_owner, LocalUrl,
+    };
     use radicle_source::surf::vcs::git::git2;
 
     use crate::{context, http, identity, project, session};

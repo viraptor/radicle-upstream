@@ -221,9 +221,7 @@ mod test {
             };
             let id = identity::create(&ctx.peer, metadata).await?;
 
-            let owner = state::get_user(&ctx.peer, id.urn.clone())
-                .await?
-                .unwrap();
+            let owner = state::get_user(&ctx.peer, id.urn.clone()).await?.unwrap();
 
             session::initialize(&ctx.store, id, &ctx.default_seeds)?;
 

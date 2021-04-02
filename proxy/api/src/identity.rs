@@ -8,13 +8,9 @@ use radicle_avatar as avatar;
 
 use radicle_daemon::{
     identities::payload::{self, ExtError, PersonPayload},
-    net,
+    net, project,
     signer::BoxedSigner,
-    state,
-    PeerId,
-    Urn,
-    Person,
-    project
+    state, PeerId, Person, Urn,
 };
 
 use crate::{
@@ -156,9 +152,7 @@ pub async fn get(
 ///
 ///  * If we cannot get the list of projects
 ///  * If we cannot get the tracked peers for a given project
-pub async fn list(
-    peer: &net::peer::Peer<BoxedSigner>,
-) -> Result<Vec<Identity>, error::Error> {
+pub async fn list(peer: &net::peer::Peer<BoxedSigner>) -> Result<Vec<Identity>, error::Error> {
     let mut users = vec![];
     for project in state::list_projects(peer).await? {
         let project_urn = project.urn();

@@ -6,12 +6,12 @@ use data_encoding::HEXLOWER;
 use rand::Rng as _;
 use tokio::sync::RwLock;
 
-use radicle_daemon::{keystore, signer::BoxedSigner, PeerControl, net};
+use radicle_daemon::{keystore, net, signer::BoxedSigner, PeerControl};
 
 use crate::service;
 
 #[cfg(test)]
-use radicle_daemon::{signer, RunConfig, Peer, keys, config};
+use radicle_daemon::{config, keys, signer, Peer, RunConfig};
 
 /// Container to pass down dependencies into HTTP filter chains.
 #[derive(Clone)]
@@ -150,7 +150,8 @@ impl From<Sealed> for Context {
 /// Context for HTTP requests with access to coco peer APIs.
 #[derive(Clone)]
 pub struct Unsealed {
-    /// Handle to inspect state and perform actions on the currently running local [`radicle_daemon::Peer`].
+    /// Handle to inspect state and perform actions on the currently running local
+    /// [`radicle_daemon::Peer`].
     pub peer_control: PeerControl,
     /// [`net::peer::Peer`] to operate on the local monorepo.
     pub peer: net::peer::Peer<BoxedSigner>,

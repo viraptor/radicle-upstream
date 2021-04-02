@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use warp::{filters::BoxedFilter, path, reject, Filter, Rejection, Reply};
 
-use radicle_daemon::{signer::BoxedSigner, state, LocalIdentity, PeerId, net};
+use radicle_daemon::{net, signer::BoxedSigner, state, LocalIdentity, PeerId};
 
 use crate::{context, notification::Subscriptions};
 
