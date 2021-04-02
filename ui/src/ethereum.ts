@@ -1,6 +1,13 @@
 import Big from "big.js";
 import * as ethers from "ethers";
 import persistentStore from "svelte-persistent-store/dist";
+import * as svelteStore from "svelte/store";
+import type { Identity } from "./identity";
+import * as session from "./session";
+
+import type { UnsealedSession } from "./session";
+
+import type { Wallet } from "./wallet";
 
 // The Ethereum environments we support and may connect to.
 export enum Environment {
@@ -70,4 +77,68 @@ export function toBaseUnit(n: ethers.BigNumber | Big): Big {
 
 export function fromBaseUnit(n: Big): ethers.BigNumber {
   return ethers.BigNumber.from(n.mul(TOKEN_DECIMALS).round().toString());
+}
+
+export enum AttestationStatus {
+  Fetching = "Fetching",
+  Incomplete = "Incomplete",
+  Expired = "Expired",
+  Unmatching = "Unmatching",
+  Valid = "Valid",
+}
+
+export const attestationStatus: svelteStore.Writable<AttestationStatus> = svelteStore.writable(
+  AttestationStatus.Fetching
+);
+
+let watching = false;
+
+function updateAttesttationStatus(walletStore: svelteStore.Readable<Wallet>) {
+  const wallet = svelteStore.get(walletStore);
+  const sess: UnsealedSession | undefined = session.unsealed();
+  const ethAccount = wallet.account();
+  if (sess && ethAccount) {
+    attestationStatus.set(
+      getAttestationStatus(sess.identity, ethAccount.address)
+    );
+  } else {
+    attestationStatus.set(AttestationStatus.Fetching);
+  }
+}
+
+export async function watchAttestationStatus(
+  walletStore: svelteStore.Readable<Wallet>
+): Promise<void> {
+  if (!watching) {
+    updateAttesttationStatus(walletStore);
+
+    // FIXME: we don't want to poll, but to re-check the status based on
+    // changes to the wallet(new account selected, new environment, etc).
+    // We can't have updateAttesttationStatus derive wallet.store because of
+    // initialization issues tho.
+    const POLL_INTERVAL_MILLIS = 1000;
+    setInterval(() => {
+      updateAttesttationStatus(walletStore);
+    }, POLL_INTERVAL_MILLIS);
+
+    watching = true;
+  }
+}
+
+// TODO(funding): we also need to lookup whether the identity.metadata.ethereum?.address has claimed
+// the identity on chain using the ClaimsContract.claimed method.
+function getAttestationStatus(
+  identity: Identity,
+  ethAddress: string
+): AttestationStatus {
+  const optEthClaim = identity.metadata.ethereum;
+  if (optEthClaim === null) {
+    return AttestationStatus.Incomplete;
+  } else if (optEthClaim.expiration < new Date()) {
+    return AttestationStatus.Expired;
+  } else {
+    return optEthClaim.address === ethAddress
+      ? AttestationStatus.Valid
+      : AttestationStatus.Unmatching;
+  }
 }

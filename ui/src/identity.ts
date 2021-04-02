@@ -75,9 +75,9 @@ const updateEthereumClaim = async (
   session.fetch();
 };
 
-function getExpirationDate() {
+function getExpirationDate(): Date {
   const days = 60;
-  const result = new Date(days);
+  const result = new Date();
   result.setDate(result.getDate() + days);
   return result;
 }
