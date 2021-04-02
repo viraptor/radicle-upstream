@@ -3,6 +3,9 @@
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+use radicle_daemon::{state, identities};
+
 use crate::{error, identity};
 
 pub mod settings;

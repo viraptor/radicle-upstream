@@ -319,8 +319,8 @@ mod test {
     use serde_json::{json, Value};
     use warp::{http::StatusCode, test::request};
 
-    use radicle_daemon::{identities::payload::Person, state::init_owner, PeerId};
-    use radicle_surf::vcs::git::git2;
+    use radicle_daemon::{identities::payload::Person, state::init_owner, LocalUrl, config, state, include};
+    use radicle_source::surf::vcs::git::git2;
 
     use crate::{context, http, identity, project, session};
 
@@ -430,8 +430,8 @@ mod test {
             session::initialize(&ctx.store, id, &ctx.default_seeds)?;
         };
 
-        let project = project::Create {
-            repo: project::Repo::New {
+        let project = radicle_daemon::project::Create {
+            repo: radicle_daemon::project::Repo::New {
                 path: dir.path().to_path_buf(),
                 name: "Upstream".to_string(),
             },
@@ -493,8 +493,8 @@ mod test {
             session::initialize(&ctx.store, id, &ctx.default_seeds)?;
         };
 
-        let project = project::Create {
-            repo: project::Repo::Existing {
+        let project = radicle_daemon::project::Create {
+            repo: radicle_daemon::project::Repo::Existing {
                 path: repo_path.clone(),
             },
             description: "Desktop client for radicle.".into(),

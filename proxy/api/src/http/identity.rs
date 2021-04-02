@@ -94,7 +94,7 @@ mod test {
     use warp::{http::StatusCode, test::request};
 
     use radicle_avatar as avatar;
-    use radicle_daemon::{Urn, state};
+    use radicle_daemon::state;
 
     use crate::{context, error, http, identity, session};
 

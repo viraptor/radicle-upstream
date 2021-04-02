@@ -309,13 +309,13 @@ pub struct TagQuery {
 #[allow(clippy::non_ascii_literal, clippy::unwrap_used)]
 #[cfg(test)]
 mod test {
-    use std::{convert::TryFrom, env};
+    use std::{env, convert::TryFrom as _};
 
     use pretty_assertions::assert_eq;
     use serde_json::{json, Value};
     use warp::{http::StatusCode, test::request};
 
-    use radicle_daemon::{state, Urn};
+    use radicle_daemon::{state, Urn, git_ext, identities};
 
     use crate::{context, error, http, browser::with_browser};
 
@@ -333,7 +333,7 @@ mod test {
         let arrows = "text/arrows.txt";
         let default_branch = state::find_default_branch(&ctx.peer, urn.clone()).await?;
         let want = with_browser(&ctx.peer, default_branch, |mut browser| {
-            radicle_source::blob(&mut browser, Some(revision.clone()), arrows, None)
+            radicle_source::blob(&mut browser, Some(revision.clone()), arrows)
         })
         .await?;
 
@@ -391,7 +391,7 @@ mod test {
         let ls = "bin/ls";
         let default_branch = state::find_default_branch(&ctx.peer, urn.clone()).await?;
         let want = with_browser(&ctx.peer, default_branch, |browser| {
-            radicle_source::blob(browser, Some(revision.clone()), ls, None)
+            radicle_source::blob(browser, Some(revision.clone()), ls)
         })
         .await?;
 
@@ -448,7 +448,7 @@ mod test {
         let urn = replicate_platinum(&ctx).await?;
         let revision = radicle_source::Revision::Branch {
             name: "dev".to_string(),
-            peer_id: None,
+            identifier: None,
         };
         let path = "here-we-are-on-a-dev-branch.lol";
 
@@ -472,7 +472,7 @@ mod test {
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
         let want = with_browser(&ctx.peer, default_branch, |mut browser| {
-            radicle_source::blob(&mut browser, Some(revision), path, None)
+            radicle_source::blob(&mut browser, Some(revision), path)
         })
         .await?;
 
@@ -518,7 +518,7 @@ mod test {
         let api = super::filters(ctx.clone().into());
 
         let urn = replicate_platinum(&ctx).await?;
-        let sha1 = coco::git_ext::Oid::try_from("3873745c8f6ffb45c990eb23b491d4b4b6182f95")?;
+        let sha1 = git_ext::Oid::try_from("3873745c8f6ffb45c990eb23b491d4b4b6182f95")?;
 
         let res = request()
             .method("GET")
@@ -528,7 +528,7 @@ mod test {
 
         let default_branch = state::find_default_branch(&ctx.peer, urn).await?;
         let want = with_browser(&ctx.peer, default_branch, |mut browser| {
-            radicle_source::commit_header(&mut browser, sha1)
+            radicle_source::commit::header(&mut browser, *sha1)
         })
         .await?;
 
@@ -567,7 +567,7 @@ mod test {
         let branch_name = "dev";
         let revision = radicle_source::Revision::Branch {
             name: branch_name.to_string(),
-            peer_id: None,
+            identifier: None,
         };
         let query = super::CommitsQuery {
             revision: Some(revision.clone()),
@@ -610,7 +610,7 @@ mod test {
             .reply(&api)
             .await;
 
-        let want = radicle_source::local_state(path.to_str().unwrap()).unwrap();
+        let want = radicle_source::local_state(path.to_str().unwrap(), "master").unwrap();
 
         http::test::assert_response(&res, StatusCode::OK, |have| {
             assert_eq!(have, json!(want));
@@ -668,7 +668,7 @@ mod test {
         let prefix = "src";
         let revision = radicle_source::Revision::Branch {
             name: "master".to_string(),
-            peer_id: None,
+            identifier: None,
         };
         let query = super::TreeQuery {
             prefix: Some(prefix.to_string()),
@@ -736,7 +736,7 @@ mod test {
 
         let revision = radicle_source::Revision::Branch {
             name: "dev".to_string(),
-            peer_id: None,
+            identifier: None,
         };
         let query = super::TreeQuery {
             prefix: None,
@@ -766,7 +766,7 @@ mod test {
     async fn replicate_platinum(ctx: &context::Unsealed) -> Result<Urn, error::Error> {
         let owner = state::init_owner(
             &ctx.peer,
-            coco::identities::payload::Person {
+            identities::payload::Person {
                 name: "cloudhead".into(),
             },
         )

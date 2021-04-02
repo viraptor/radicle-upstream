@@ -267,7 +267,7 @@ pub fn clone_platinum(platinum_into: impl AsRef<path::Path>) -> Result<(), Error
 
 #[cfg(test)]
 mod test {
-    use coco::{
+    use radicle_daemon::{
         librad::{
             git::identities::local::LocalIdentity, git_ext::OneLevel, identities::Project, keys,
             net::peer::Peer, peer::PeerId, reflike, signer::BoxedSigner,

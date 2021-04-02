@@ -11,7 +11,7 @@ use radicle_daemon::{keystore, signer::BoxedSigner, PeerControl, net};
 use crate::service;
 
 #[cfg(test)]
-use radicle_daemon::{signer, RunConfig};
+use radicle_daemon::{signer, RunConfig, Peer, keys, config};
 
 /// Container to pass down dependencies into HTTP filter chains.
 #[derive(Clone)]

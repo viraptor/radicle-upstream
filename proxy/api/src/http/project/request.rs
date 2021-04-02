@@ -95,11 +95,13 @@ mod handler {
 
 #[cfg(test)]
 mod test {
-    use std::{convert::TryFrom, time::SystemTime};
+    use std::{time::SystemTime, convert::TryFrom as _};
 
     use pretty_assertions::assert_eq;
     use serde_json::json;
     use warp::{http::StatusCode, test::request};
+
+    use radicle_daemon::{Urn, git_ext};
 
     use crate::{context, http};
 

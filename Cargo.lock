@@ -49,15 +49,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ansi_term"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d52a9bb7ec0cf484c551830a7ce27bd20d67eac647e1befb56b0be4ee39a55d2"
-dependencies = [
- "winapi",
-]
-
-[[package]]
 name = "anyhow"
 version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -77,7 +68,7 @@ dependencies = [
  "eip55",
  "futures 0.3.13",
  "http",
- "kv 0.22.0",
+ "kv",
  "lazy_static",
  "log",
  "nonempty 0.6.0",
@@ -86,7 +77,7 @@ dependencies = [
  "pretty_env_logger",
  "radicle-avatar",
  "radicle-daemon",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
+ "radicle-git-ext",
  "radicle-source",
  "rand 0.7.3",
  "secstr",
@@ -140,12 +131,6 @@ name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b62fc65de8e4e7f52534fb52b0f3ed04746ae267519eef2a83941e8085068b"
-
-[[package]]
-name = "assert_matches"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
 name = "async-stream"
@@ -395,37 +380,6 @@ dependencies = [
  "serde",
  "time 0.1.43",
  "winapi",
-]
-
-[[package]]
-name = "coco"
-version = "0.1.0"
-dependencies = [
- "assert_matches",
- "async-stream",
- "either",
- "futures 0.3.13",
- "git2",
- "kv 0.21.1",
- "lazy_static",
- "librad 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
- "log",
- "nonempty 0.6.0",
- "pretty_assertions",
- "pretty_env_logger",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
- "radicle-git-helpers 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
- "radicle-keystore",
- "radicle-surf 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde",
- "serde_millis",
- "syntect",
- "tempfile",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
 ]
 
 [[package]]
@@ -1204,18 +1158,6 @@ checksum = "67c21572b4949434e4fc1e1978b99c5f77064153c59d998bf13ecd96fb5ecba7"
 
 [[package]]
 name = "kv"
-version = "0.21.1"
-source = "git+https://github.com/zshipko/rust-kv.git?rev=a98e1ace84b22ceaac276abf796633bd8e735500#a98e1ace84b22ceaac276abf796633bd8e735500"
-dependencies = [
- "serde",
- "serde_json",
- "sled",
- "thiserror",
- "toml",
-]
-
-[[package]]
-name = "kv"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c56bac60e13594bf7a8f12f7d592ece96ab30daa0fcaf533dfba2815838fc8e"
@@ -1309,76 +1251,10 @@ dependencies = [
  "picky-asn1-x509",
  "pnet_datalink",
  "quinn",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
+ "radicle-git-ext",
  "radicle-keystore",
- "radicle-macros 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "radicle-std-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "rand 0.7.3",
- "rand_pcg",
- "regex",
- "rustc-hash",
- "rustls",
- "serde",
- "serde_bytes",
- "serde_json",
- "tempfile",
- "thiserror",
- "time 0.2.25",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-attributes",
- "tracing-futures",
- "unicode-normalization",
- "url",
- "uuid",
- "webpki",
- "zeroize",
-]
-
-[[package]]
-name = "librad"
-version = "0.1.0"
-source = "git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284#9467c364fa232f6563caf7ec123c43ade9c23284"
-dependencies = [
- "async-stream",
- "async-trait",
- "bit-vec",
- "bs58",
- "bytes 0.5.6",
- "dashmap",
- "deadpool",
- "directories 3.0.1",
- "dyn-clone",
- "ed25519-zebra 2.2.0 (git+https://github.com/ZcashFoundation/ed25519-zebra?rev=0e7a96a267a756e642e102a28a44dd79b9c7df69)",
- "either",
- "futures 0.3.13",
- "futures-timer",
- "futures_codec",
- "git2",
- "globset",
- "governor",
- "lazy_static",
- "libc",
- "libgit2-sys",
- "minicbor",
- "multibase",
- "multihash",
- "nom 5.1.2",
- "nonempty 0.6.0",
- "nonzero_ext",
- "num_cpus",
- "parking_lot",
- "percent-encoding",
- "picky-asn1",
- "picky-asn1-der",
- "picky-asn1-x509",
- "pnet_datalink",
- "quinn",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
- "radicle-keystore",
- "radicle-macros 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
- "radicle-std-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
+ "radicle-macros",
+ "radicle-std-ext",
  "rand 0.7.3",
  "rand_pcg",
  "regex",
@@ -1445,15 +1321,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
 dependencies = [
  "cfg-if 1.0.0",
-]
-
-[[package]]
-name = "matchers"
-version = "0.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f099785f7595cc4b4553a174ce30dd7589ef93391ff414dbb67f62392b9e0ce1"
-dependencies = [
- "regex-automata",
 ]
 
 [[package]]
@@ -1920,7 +1787,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f81e1644e1b54f5a68959a29aa86cde704219254669da328ecfdf6a1f09d427"
 dependencies = [
- "ansi_term 0.11.0",
+ "ansi_term",
  "ctor",
  "difference",
  "output_vt100",
@@ -2037,13 +1904,13 @@ dependencies = [
  "either",
  "futures 0.3.13",
  "git2",
- "kv 0.22.0",
+ "kv",
  "lazy_static",
- "librad 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
+ "librad",
  "log",
  "nonempty 0.6.0",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "radicle-git-helpers 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
+ "radicle-git-ext",
+ "radicle-git-helpers",
  "radicle-keystore",
  "serde",
  "serde_millis",
@@ -2063,22 +1930,7 @@ dependencies = [
  "multibase",
  "multihash",
  "percent-encoding",
- "radicle-std-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "radicle-git-ext"
-version = "0.1.0"
-source = "git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284#9467c364fa232f6563caf7ec123c43ade9c23284"
-dependencies = [
- "git2",
- "minicbor",
- "multibase",
- "multihash",
- "percent-encoding",
- "radicle-std-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
+ "radicle-std-ext",
  "serde",
  "thiserror",
 ]
@@ -2091,19 +1943,7 @@ dependencies = [
  "anyhow",
  "git2",
  "libgit2-sys",
- "librad 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "radicle-keystore",
-]
-
-[[package]]
-name = "radicle-git-helpers"
-version = "0.1.0"
-source = "git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284#9467c364fa232f6563caf7ec123c43ade9c23284"
-dependencies = [
- "anyhow",
- "git2",
- "libgit2-sys",
- "librad 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
+ "librad",
  "radicle-keystore",
 ]
 
@@ -2134,17 +1974,7 @@ version = "0.1.0"
 source = "git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286#84a760c0be65548ee2f6871ca2e876fb001de286"
 dependencies = [
  "quote",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286)",
- "syn",
-]
-
-[[package]]
-name = "radicle-macros"
-version = "0.1.0"
-source = "git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284#9467c364fa232f6563caf7ec123c43ade9c23284"
-dependencies = [
- "quote",
- "radicle-git-ext 0.1.0 (git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284)",
+ "radicle-git-ext",
  "syn",
 ]
 
@@ -2157,7 +1987,7 @@ dependencies = [
  "lazy_static",
  "log",
  "nonempty 0.6.0",
- "radicle-surf 0.5.3 (git+https://github.com/radicle-dev/radicle-surf.git?rev=a3f8e3e7f6e9b8c83628cd3c450e719873688dc1)",
+ "radicle-surf",
  "serde",
  "syntect",
  "thiserror",
@@ -2167,26 +1997,6 @@ dependencies = [
 name = "radicle-std-ext"
 version = "0.1.0"
 source = "git+https://github.com/radicle-dev/radicle-link.git?rev=84a760c0be65548ee2f6871ca2e876fb001de286#84a760c0be65548ee2f6871ca2e876fb001de286"
-
-[[package]]
-name = "radicle-std-ext"
-version = "0.1.0"
-source = "git+https://github.com/radicle-dev/radicle-link.git?rev=9467c364fa232f6563caf7ec123c43ade9c23284#9467c364fa232f6563caf7ec123c43ade9c23284"
-
-[[package]]
-name = "radicle-surf"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c92c20edc7b85e69572ee2a23d9f07ec85bee12d456584a1f0b3af872feb3f3"
-dependencies = [
- "either",
- "git2",
- "nom 6.1.2",
- "nonempty 0.5.0",
- "regex",
- "serde",
- "thiserror",
-]
 
 [[package]]
 name = "radicle-surf"
@@ -2381,16 +2191,6 @@ dependencies = [
  "memchr",
  "regex-syntax",
  "thread_local",
-]
-
-[[package]]
-name = "regex-automata"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae1ded71d66a4a97f5e961fd0cb25a5f366a42a41570d16a763a69c092c26ae4"
-dependencies = [
- "byteorder",
- "regex-syntax",
 ]
 
 [[package]]
@@ -2703,15 +2503,6 @@ dependencies = [
  "digest",
  "keccak",
  "opaque-debug",
-]
-
-[[package]]
-name = "sharded-slab"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79c719719ee05df97490f80a45acfc99e5a30ce98a1e4fb67aee422745ae14e3"
-dependencies = [
- "lazy_static",
 ]
 
 [[package]]
@@ -3126,49 +2917,6 @@ checksum = "97d095ae15e245a057c8e8451bab9b3ee1e1f68e9ba2b4fbc18d0ac5237835f2"
 dependencies = [
  "pin-project 1.0.5",
  "tracing",
-]
-
-[[package]]
-name = "tracing-log"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6923477a48e41c1951f1999ef8bb5a3023eb723ceadafe78ffb65dc366761e3"
-dependencies = [
- "lazy_static",
- "log",
- "tracing-core",
-]
-
-[[package]]
-name = "tracing-serde"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb65ea441fbb84f9f6748fd496cf7f63ec9af5bca94dd86456978d055e8eb28b"
-dependencies = [
- "serde",
- "tracing-core",
-]
-
-[[package]]
-name = "tracing-subscriber"
-version = "0.2.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ab8966ac3ca27126141f7999361cc97dd6fb4b71da04c02044fa9045d98bb96"
-dependencies = [
- "ansi_term 0.12.1",
- "chrono",
- "lazy_static",
- "matchers",
- "regex",
- "serde",
- "serde_json",
- "sharded-slab",
- "smallvec",
- "thread_local",
- "tracing",
- "tracing-core",
- "tracing-log",
- "tracing-serde",
 ]
 
 [[package]]
