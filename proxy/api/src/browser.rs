@@ -13,8 +13,8 @@ use crate::error::Error;
 /// Provide a repo [`git::Browser`] where the `Browser` is initialised with the provided
 /// `reference`.
 ///
-/// See [`find_default_branch`] and [`get_branch`] for obtaining a
-/// [`Reference`].
+/// See [`radicle_daemon::state::find_default_branch`] and [`radicle_daemon::state::get_branch`] for
+/// obtaining a [`Reference`].
 ///
 /// # Errors
 ///   * If the namespace of the reference could not be converted to a [`git::Namespace`].

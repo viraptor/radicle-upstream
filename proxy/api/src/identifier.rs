@@ -1,4 +1,4 @@
-//! An `Identifier` is the combination of a user handle and the [`coco::PeerId`] that
+//! An `Identifier` is the combination of a user handle and the [`radicle_daemon::PeerId`] that
 //! identifies the user.
 
 use std::{fmt, str::FromStr};

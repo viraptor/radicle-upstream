@@ -228,8 +228,10 @@ impl Projects {
                 Ok(branch) => branch,
             };
 
-            let stats = match browser::using(peer, default_branch, |browser| Ok(browser.get_stats()?))
-                .await
+            let stats = match browser::using(peer, default_branch, |browser| {
+                Ok(browser.get_stats()?)
+            })
+            .await
             {
                 Err(err) => {
                     log::warn!("Failure for '{}': {}", project.urn, err);
